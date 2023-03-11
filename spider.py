@@ -12,14 +12,13 @@ def cookie_seperator(cookie):
         cookies[tmp_index]=temp
     return cookies
 
-cookie_input=input('请输入cookie，')
+cookie_input=input('请输入cookie：')
 cookies = cookie_seperator(cookie_input) #格式化cookies
 
 headers = {
     'Accept': 'application/json, textain, */*',
     'Accept-Language': 'zh-CN,zh;q=0.9',
     'Connection': 'keep-alive',
-    # 'Cookie': 'ZF_CLIENT_ID=1677983223183-5275536195173502; _bl_uid=j6la1eC2u4zr3Fvqvyz7oq9hFqzF; user-token=eyJpdiI6IndIWkRzUUlmbTJmNVNvSEZ1d1U5aXc9PSIsInZhbHVlIjoiRStYWDhYVnhubmpCODFYaDFqd293MWxHTEdwdmJDT1FjUHNjcE5UclJBVVNkTURuUDBtUncxWHVOeUZIZmM1cCIsIm1hYyI6IjliNTNkMjIwODkzYjhmZGQ1YzgwNjZjNjdmOTFiMjYyNzliMjcxNzJiYzZjNWVmOGUzY2JiZDNiNjU2NmEwYjgifQ%3D%3D; userDisplayInfo=%7B%22userId%22%3A3755695%2C%22hashId%22%3A%22dDWyjldWrZ6wzO%22%2C%22nickname%22%3A%22%E5%B0%8FDXG%22%2C%22avatarPath%22%3A%22%5C%2F%5C%2Fimg.zfrontier.com%5C%2Favatar%5C%2F211214%5C%2Fava61b8b528b3b7d%22%2C%22viewUrl%22%3A%22%5C%2Fapp%5C%2Fuser%5C%2FdDWyjldWrZ6wzO%22%7D; userServerInfo=eyJpdiI6ImpIWGY3OTF3Zjc0ekNqMGRCRlRXSWc9PSIsInZhbHVlIjoiMlZVcjFsa2ZoXC9weTJaelBJTHFCOWZXckJzb09Tc3VrTVhybkxrWGtSWk5hYWcyUW5mWWROMThpbWJuMmxZNzdSR0thUEFoaTY1T1VIc25VNytcL2JZQT09IiwibWFjIjoiZTJlM2VlZDYxNDVhNDkxYzQ5OWE1NDhjZTM0MDVlYzg5N2RiNzBiNTdlMjdhMTMwYWNiZTQ3YThlZmRhNWRjYSJ9',
     'DNT': '1',
     'Origin': 'https://www.zfrontier.com',
     'Referer': 'https://www.zfrontier.com/app/',
@@ -41,5 +40,6 @@ data = {
     'tagIds[0]': 'new',
 }
 
-response = requests.post('https://www.zfrontier.com/v2/home/flow/list', cookies=cookies, headers=headers, data=data).json()
+response = requests.post('https://www.zfrontier.com/v2/home/flow/list', cookies=cookies, headers=headers, data=data,verify=False).json()
+# response.encoding = "utf-8"
 print(response)
