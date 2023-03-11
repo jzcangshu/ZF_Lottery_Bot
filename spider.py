@@ -1,3 +1,5 @@
+# 该文件用于手动输入cookie并模拟登录 获取一页情报页面文章数据
+
 import requests
 import time
 
