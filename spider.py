@@ -11,12 +11,20 @@ def spider(r):
     temp_lottery_info_lst = []
     temp_lottery_info_str = ''
     with open('lottery_info.txt','a+') as f:
-        for article in r['data']['list']:#开始获取单个帖子详情
+        for article in r['data']['list']: #开始获取单个帖子详情
             id = article['id']
             hash_id = article['hash_id']
-            temp_lottery_info_str = str(id) + ',' + str(hash_id) + '\n'
-            temp_lottery_info_lst.append(temp_lottery_info_str)
-        f.writelines(temp_lottery_info_lst)
+            view_url = 'https://www.zfrontier.com/v2/flow/detail/' + hash_id
+            view_headers['Referer'] = view_url
+            view_headers['X-CSRF-TOKEN'] = ''
+            response = requests.post(view_url,cookies=cookies, headers=view_headers, data=data,verify=False).json() # 获取详情
+            if response['data']['flow']['lottery'] != None: #如果抽奖信息非空
+                if response[data]['flow']['lottery']['status_str'] == '待抽奖':
+                    lottery_time = response['data']['flow']['lottery']['lottery_at'] #获取开奖时间
+                    temp_lottery_info_str = str(id) + ',' + str(hash_id) + ',' + str(lottery_time) + '\n'
+                    temp_lottery_info_lst.append(temp_lottery_info_str)
+                    f.writelines(temp_lottery_info_lst) #将被筛选出来的抽奖信息写入TXT文件
+            time.sleep(5)
 
 'cookie_seperator函数用于格式化从config.ini中读取到的CK变量备用 【注意】cookie中只应包含值 不要含有中文！'
 def cookie_seperator(cookie): 
@@ -55,6 +63,8 @@ headers = {
     'sec-ch-ua-platform': '"Windows"',
 }
 
+view_headers = headers #用于获取文章详情的headers，区别在于无X-CSRF-TOKEN并修改了Referer
+
 data = {
     'time': '1677986751',
     't': '76911247ec209e60fa2d0516b48aa3cc',
@@ -69,7 +79,7 @@ pages_cnt = 1
 print('——————开始获取',set_pages_cnt,'页情报——————')
 while pages_cnt <= set_pages_cnt:
     response = requests.post('https://www.zfrontier.com/v2/home/flow/list', cookies=cookies, headers=headers, data=data,verify=False).json()
-#    print(type(response['data']))
+    print(response)
     data['offset'] = response['data']['offset']
     print('第',pages_cnt,'页数据获取完成')
     spider(response) #传入抽奖信息解析函数
