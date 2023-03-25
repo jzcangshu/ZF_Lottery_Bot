@@ -3,6 +3,8 @@
 import configparser
 import requests
 import json
+import os
+
 
 #——————————下方区域放置所有函数备用——————————#
 'cookie_seperator函数用于格式化从config.ini中读取到的CK变量备用 【注意】cookie中只应包含值 不要含有中文！'
@@ -15,6 +17,12 @@ def cookie_seperator(cookie):
         cookies[tmp_index]=temp
     return cookies
 #——————————下方区域为初始化变量——————————#
+'使用系统代理设置'
+proxies = {
+    'http': os.environ.get('HTTP_PROXY'),
+    'https': os.environ.get('HTTPS_PROXY')
+}
+
 '读取配置项'
 cfp = configparser.RawConfigParser()
 cfp.read("config.ini")
@@ -43,9 +51,8 @@ data = {
     'time': '1677986751',
     't': '76911247ec209e60fa2d0516b48aa3cc',
     'offset': '',
-    'tagIds[0]': 'new',
+    'tagIds[0]': '2007',
 }
 
 
 #——————————下方开始主程序——————————#
-
