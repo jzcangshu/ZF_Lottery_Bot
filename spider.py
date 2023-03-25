@@ -69,7 +69,7 @@ data = {
     'time': '1677986751',
     't': '76911247ec209e60fa2d0516b48aa3cc',
     'offset': '',
-    'tagIds[0]': 'new',
+    'tagIds[0]': '2007',
 }
 pages_cnt = 1
 
