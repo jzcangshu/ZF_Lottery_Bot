@@ -4,7 +4,12 @@ import configparser
 import requests
 import json
 import os
-
+import time
+import hmac
+import hashlib
+import base64
+import urllib.parse
+import random
 
 #——————————下方区域放置所有函数备用——————————#
 'cookie_seperator函数用于格式化从config.ini中读取到的CK变量备用 【注意】cookie中只应包含值 不要含有中文！'
@@ -16,43 +21,53 @@ def cookie_seperator(cookie):
         tmp_index=i[:i.find('=')]
         cookies[tmp_index]=temp
     return cookies
-#——————————下方区域为初始化变量——————————#
-'使用系统代理设置'
-proxies = {
-    'http': os.environ.get('HTTP_PROXY'),
-    'https': os.environ.get('HTTPS_PROXY')
-}
 
-'读取配置项'
-cfp = configparser.RawConfigParser()
-cfp.read("config.ini")
-'读取CK'
-cookie_input = cfp.get("Cookies", "ck")
-cookies = cookie_seperator(cookie_input)
-headers = {
-    'Accept': 'application/json, textain, */*',
-    'Accept-Language': 'zh-CN,zh;q=0.9',
-    'Connection': 'keep-alive',
-    'DNT': '1',
-    'Origin': 'https://www.zfrontier.com',
-    'Referer': 'https://www.zfrontier.com/app/',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-origin',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
-    'X-CLIENT-LOCALE': 'zh-CN',
-    'X-CSRF-TOKEN': '1677986750b4ca20af6c299d495bc7f1abd334a0',
-    'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-}
-
-data = {
-    'time': '1677986751',
-    't': '76911247ec209e60fa2d0516b48aa3cc',
-    'offset': '',
-    'tagIds[0]': '2007',
-}
-
+#推送先不急
 
 #——————————下方开始主程序——————————#
+with open('0.json', 'r') as f:
+    config = json.load(f)
+    
+ready_to_send='开始任务…… \n'
+    
+for accounts in config:
+    #——————————下方区域为初始化变量——————————#
+    cookies = accounts['cookies']
+    proxies = {
+            'http': os.environ.get('HTTP_PROXY'),
+            'https': os.environ.get('HTTPS_PROXY')
+    }    
+    #不填则使用系统代理
+    http_proxy = accounts.get('HTTP_PROXY', '')
+    https_proxy = accounts.get('HTTPS_PROXY', '')
+    waiting_before_use = accounts.get('WAITING_BEFORE_USE', '')
+    # 如果cookies为空，则跳过当前循环
+    if not cookies:
+        print("未找到cookies，下一个！")        #其实应该再检测是否有下一个账号，没时间啦
+        ready_to_send+="未找到cookies，下一个！\n"
+        continue
+    if http_proxy:
+        proxies['http']=http_proxy
+    if https_proxy:
+        proxies['https']=https_proxy
+    if waiting_before_use:
+        print("随机暂停",waiting_before_use,"s")
+        time.sleep(waiting_before_use)
+    else :
+        Interval=random.randint(60,600)
+        print("未填入暂停时间，随机暂停",Interval,"s")
+        time.sleep(Interval)
+
+
+
+
+    #顺带把想到的写一下
+    #——————————最开始先尝试登录，若成功则输出昵称——————————#
+
+
+    
+    #随机取出chat中元素并评论：
+    content = random.choice(accounts['chat'])
+
+
+
