@@ -32,7 +32,9 @@ ready_to_send='开始任务…… \n'
     
 for accounts in config:
     #——————————下方区域为初始化变量——————————#
-    cookies = accounts['cookies']
+    '读取CK'
+    cookie_input = accounts['cookies']
+    cookies = cookie_seperator(cookie_input)
     proxies = {
             'http': os.environ.get('HTTP_PROXY'),
             'https': os.environ.get('HTTPS_PROXY')
