@@ -1,0 +1,19 @@
+[
+    {
+        "cookies": "若多账号则依次复制",
+        "HTTP_PROXY":"此项若不填则使用系统代理",
+        "HTTPS_PROXY":"同上",
+        "WAITING_BEFORE_USE":"此项留空则随机暂停1-10min",
+        "DD_WEBHOOK":"示例：https://oapi.dingtalk.com/robot/send?access_token=*********,",
+        "DD_SEC":"示例：SEC******"
+    },    
+    {
+        "cookies": "",
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":"",
+        "WAITING_BEFORE_USE":"",
+        "DD_WEBHOOK":"",
+        "DD_SEC":""
+    }    
+
+]
