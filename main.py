@@ -22,6 +22,41 @@ def cookie_seperator(cookie):
         cookies[tmp_index]=temp
     return cookies
 
+'lottery_time_checker函数用于判断读取到的抽奖数据文件中的单个帖子开奖日期与当前日期的关系,如果还未到开奖时间则返回True,否则返回False'
+def lottery_time_checker(lottery_at):
+    # 获取当前时间
+    current_time = time.localtime()
+    # 输出当前时间的年份
+    year = str(current_time.tm_year)
+    # 输出当前时间的月份
+    month = current_time.tm_mon
+    if month < 10:
+        month = '0' + str(month)
+    else:
+        month = str(month)
+    # 输出当前时间的日期
+    day = current_time.tm_mday
+    if day < 10:
+        day = '0' + str(day)
+    else:
+        day = str(day)
+    # 输出当前时间的小时数
+    hour = current_time.tm_hour
+    if hour < 10:
+        hour = '0' + str(hour)
+    else:
+        hour = str(hour)
+    # 输出当前时间的分钟数
+    min = current_time.tm_min
+    if min < 10:
+        min = '0' + str(min)
+    else:
+        min = str(min)
+    os_time = year + '-' + month + '-' + day + ' ' + hour + ':' + min
+    still_lottery = os_time < lottery_at #返回True则还未开奖
+    return(still_lottery)
+
+
 #推送先不急
 
 #——————————下方开始主程序——————————#
@@ -59,8 +94,6 @@ for accounts in config:
         Interval=random.randint(60,600)
         print("未填入暂停时间，随机暂停",Interval,"s")
         time.sleep(Interval)
-
-
 
 
     #顺带把想到的写一下
