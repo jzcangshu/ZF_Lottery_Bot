@@ -80,8 +80,8 @@ for accounts in config:
     waiting_before_use = accounts.get('WAITING_BEFORE_USE', '')
     # 如果cookies为空，则跳过当前循环
     if not cookies:
-        print("未找到cookies，下一个！")        #其实应该再检测是否有下一个账号，没时间啦
-        ready_to_send+="未找到cookies，下一个！\n"
+        print("未找到cookies,下一个!")        #其实应该再检测是否有下一个账号，没时间啦
+        ready_to_send+="未找到cookies,下一个!\n"
         continue
     if http_proxy:
         proxies['http']=http_proxy
@@ -96,9 +96,16 @@ for accounts in config:
         time.sleep(Interval)
 
 
-    #顺带把想到的写一下
-    #——————————最开始先尝试登录，若成功则输出昵称——————————#
-
+    #——————————开始单个账号抽奖——————————#
+    '''
+     ①登录账号 输出昵称 检查签到
+     ②拉取GitHub上存储的lottery_info.json
+     ③解析抽奖信息JSON文件,与/dyids/1.txt进行比对查重 (按照账号编号区分文件)
+     ④lottery_time_checker检查是否超过开奖时间
+     ④通过查重+开奖时间检测的 -> 调用reply函数参与抽奖+写入dyids(放弃点赞判断减少风控风险,但是留着这功能作为可选项,具体参考闪米特同款)
+     ⑤根据lottery_info.json中的加群信息判断是否需要加群 -> qualified_qq.txt加群查重 -> 添加加群信息到待推送str中(一行一个)
+     ⑥所有账号运行结束后统一进行加群推送
+    '''
 
     
     #随机取出chat中元素并评论：
