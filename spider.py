@@ -9,51 +9,55 @@ import os
 #——————————下方区域放置所有函数备用——————————#
 'spider函数用于解析list中获取到的文章信息并存储(list内无法判断是否含有抽奖信息)'
 def spider(r,article_cnt):
-    with open('lottery_info.json','w+') as f:
-        json_str = f.read()               # 读取文件中原有的抽奖数据
-        if len(json_str) == 0:            #如果文件为空则需要初始化JSON格式
-            json_str = '[]'
-        data_list = json.loads(json_str)  # 将JSON数据解析为Python列表
+    f = open('lottery_info.json','r', encoding="UTF-8")
+    json_str = f.read()               # 读取文件中原有的抽奖数据
+    f.close()
+
+    if len(json_str) == 0:            #如果文件为空则需要初始化JSON格式
+        json_str = '[]'
+    data_list = json.loads(json_str)  # 将JSON数据解析为Python列表
 
 
-        for article in r['data']['list']: # 开始获取单个帖子详情
-            temp_lottery_info_dict = {}   # 存储单个帖子中的抽奖信息
-            temp_lottery_info_dict['id'] = article['id']
-            temp_lottery_info_dict['hash_id'] = article['hash_id']
-            view_url = 'https://www.zfrontier.com/v2/flow/detail/' + article['hash_id']
+    for article in r['data']['list']: # 开始获取单个帖子详情
+        temp_lottery_info_dict = {}   # 存储单个帖子中的抽奖信息
+        temp_lottery_info_dict['id'] = article['id']
+        temp_lottery_info_dict['hash_id'] = article['hash_id']
+        view_url = 'https://www.zfrontier.com/v2/flow/detail/' + article['hash_id']
 
-            #进行去重过滤
-            if str(article['id']) in json_str: #如果该抽奖已被存储过则跳过
-                article_cnt -= 1
-                continue
-
-            cnt = 0 #重试请求次数计数器
-            view_headers['Referer'] = view_url
-            response = requests.post(view_url, proxies=proxies,cookies=cookies, headers=view_headers, data=data, verify=False).json() # 获取详情
-            while cnt<= 3 and ( response['msg'] == '操作太频繁了' or response['data'] == []):
-                cnt += 1
-                print('【风控警告】自动暂停',str(60*cnt),'秒...')
-                time.sleep(60*cnt)
-                response = requests.post(view_url, proxies=proxies,cookies=cookies, headers=view_headers, data=data, verify=False).json() # 获取详情
-            if response['msg'] == '操作太频繁了' or response['data'] == []:
-                return('【风控警告】超出最大风控重试次数限制，程序强制退出')
-            # 循环重试最多3次
-            
-            print('成功获取帖子详情：',article['hash_id'],'  ('+str(article_cnt)+')')
+        #进行去重过滤
+        if str(article['id']) in json_str: #如果该抽奖已被存储过则跳过
             article_cnt -= 1
-                
-            if response['data']['flow']['lottery'] != None: #如果抽奖信息非空
-                if response['data']['flow']['lottery']['status_str'] == '待抽奖':
-                    temp_lottery_info_dict['lottery_time'] = response['data']['flow']['lottery']['lottery_at'] #开奖时间 格式-> '2023-03-31 20:20'
-                    temp_lottery_info_dict['lottery_qq'] = response['data']['flow']['plate']['name'] + ' ' + response['data']['flow']['plate']['qq']  #str格式的抽奖群号+群昵称
-                    temp_lottery_info_dict['jq_flag'] = 'F' #初始化变量“是否需要加群”
-                    for awards in response['data']['flow']['lottery']['prizesGroup']: #jq_flag存储是否需要加群领奖（值为T或F）
-                        if '群' in awards['name']: #奖品名称中写明需要加群领奖
-                            temp_lottery_info_dict['jq_flag'] = 'T'
-                data_list.append(temp_lottery_info_dict) # 将新的JSON数据添加到Python对象中（单个抽奖信息）
-            time.sleep(15)
-        json_str = json.dumps(data_list)         # 将Python对象转换为JSON格式的字符串
-        f.write(json_str)                        # 将被筛选出的抽奖帖子信息写回到.json文件中(包括原有的)
+            continue
+
+        cnt = 0 #重试请求次数计数器
+        view_headers['Referer'] = view_url
+        response = requests.post(view_url, proxies=proxies,cookies=cookies, headers=view_headers, data=data, verify=False).json() # 获取详情
+        while cnt<= 3 and ( response['msg'] == '操作太频繁了' or response['data'] == []):
+            cnt += 1
+            print('【风控警告】自动暂停',str(60*cnt),'秒...')
+            time.sleep(60*cnt)
+            response = requests.post(view_url, proxies=proxies,cookies=cookies, headers=view_headers, data=data, verify=False).json() # 获取详情
+        if response['msg'] == '操作太频繁了' or response['data'] == []:
+            return('【风控警告】超出最大风控重试次数限制，程序强制退出')
+        # 循环重试最多3次
+        
+        print('成功获取帖子详情：',article['hash_id'],'  ('+str(article_cnt)+')')
+        article_cnt -= 1
+            
+        if response['data']['flow']['lottery'] != None: #如果抽奖信息非空
+            if response['data']['flow']['lottery']['status_str'] == '待抽奖':
+                temp_lottery_info_dict['lottery_time'] = response['data']['flow']['lottery']['lottery_at'] #开奖时间 格式-> '2023-03-31 20:20'
+                temp_lottery_info_dict['lottery_qq'] = response['data']['flow']['plate']['name'] + ' ' + response['data']['flow']['plate']['qq']  #str格式的抽奖群号+空格+群昵称
+                temp_lottery_info_dict['jq_flag'] = 'F' #初始化变量“是否需要加群”
+                for awards in response['data']['flow']['lottery']['prizesGroup']: #jq_flag存储是否需要加群领奖（值为T或F）
+                    if '群' in awards['name']: #奖品名称中写明需要加群领奖
+                        temp_lottery_info_dict['jq_flag'] = 'T'
+            data_list.append(temp_lottery_info_dict) # 将新的JSON数据添加到Python对象中（单个抽奖信息）
+        time.sleep(15)
+    json_str = json.dumps(data_list)         # 将Python对象转换为JSON格式的字符串
+
+    f = open('lottery_info.json','w', encoding="UTF-8")
+    f.write(json_str)                        # 将被筛选出的抽奖帖子信息写回到.json文件中(包括原有的)
 
 'cookie_seperator函数用于格式化从config.ini中读取到的CK变量备用 【注意】cookie中只应包含值 不要含有中文！'
 def cookie_seperator(cookie): 
