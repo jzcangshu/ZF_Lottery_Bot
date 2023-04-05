@@ -53,7 +53,7 @@ def spider(r,article_cnt):
                 for awards in response['data']['flow']['lottery']['prizesGroup']: #jq_flag存储是否需要加群领奖（值为T或F）
                     if '群' in awards['name']: #奖品名称中写明需要加群领奖
                         temp_lottery_info_dict['jq_flag'] = 'T'
-            data_list.append(temp_lottery_info_dict) # 将新的JSON数据添加到Python对象中（单个抽奖信息）
+                data_list.append(temp_lottery_info_dict) # 将新的JSON数据添加到Python对象中（单个抽奖信息）
         time.sleep(15)
     json_str = json.dumps(data_list)         # 将Python对象转换为JSON格式的字符串
 
