@@ -179,11 +179,11 @@ try:
         ⑤根据lottery_info.json中的加群信息判断是否需要加群 -> qualified_qq.txt加群查重 -> 添加加群信息到待推送str中(一行一个)
         ⑥所有账号运行结束后统一进行加群推送
         '''
-        print('账号'+str(account_num)+'开始抽奖')
-        ready_to_send += '【账号'+str(account_num)+'开始抽奖】'
+        print('——————————账号'+str(account_num)+'开始抽奖——————————\n')
+        ready_to_send += '——————【账号'+str(account_num)+'开始抽奖】——————\n'
         for cnt in range(10):
             try:
-                print('开始获取公共API抽奖数据...')
+                print('开始获取公共API抽奖数据...\n')
                 response = requests.get(api, proxies=proxies, verify=False, timeout=5)
                 if response.status_code == 200:
                     lottery_data_json = json.loads(response.text)
