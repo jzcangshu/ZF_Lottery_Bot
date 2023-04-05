@@ -12,6 +12,7 @@ import urllib.parse
 import random
 import datetime
 import re
+from notify import send
 
 #——————————下方区域放置所有函数&全局变量备用——————————#
 'cookie_seperator函数用于格式化从config.ini中读取到的CK变量备用 【注意】cookie中只应包含值 不要含有中文！'
@@ -60,80 +61,6 @@ def lottery_time_checker(lottery_at):
 
 'reply_to_lottery函数用于回复参与抽奖'
 def reply_to_lottery(id,hash_id):
-    site = 'https://www.zfrontier.com/app/flow/' + hash_id
-    reply_content = random.choice(accounts['chat'])
-    reply='<p>' + reply_content + '<p>'
-    headers['Referer'] = site
-    data_for_reply['content'] = reply
-#    add_response = requests.post('https://www.zfrontier.com/api/circle/zanFlow', cookies=cookies, headers=headers, data=data_for_add).text
-#    add_match_list = re.findall(r'\d+', add_response)
-#    if add_match_list[0]=='0':
-#        print('点赞成功!')
-#    else :
-#        print('点赞失败!')
-    # 回复帖子
-    reply_response = requests.post('https://www.zfrontier.com/v2/flow/reply', cookies=cookies, headers=headers, data=data_for_reply).json
-    reply_match_list = re.findall(r'\d+', str(reply_response))
-    if reply_match_list[0]=='200':
-        return True  #回复成功
-    else :
-        return False #回复失败
-
-'qq_add用于存储本轮中需要被推送加群的QQ群'
-qq_add = ''
-'qualified_qq存储所有已经添加过的QQ群用于查重，减少推送量'
-qq = open('qualified_qq.txt','r', encoding="UTF-8")
-qualified_qq = qq.read()
-qq.close()
-
-
-#推送先不急
-
-#——————————下方开始主程序——————————#
-with open('config.json', 'r', encoding="UTF-8") as f:
-    config = json.load(f)
-    
-ready_to_send=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' 开始任务…… \n'
-    
-for accounts in config:
-    #——————————下方区域为初始化变量——————————#
-
-    'flag变量用于重试检测是否能够获取到抽奖数据JSON'
-    flag = False
-
-    'lottery_info.json 文件地址'
-    api = 'https://raw.githubusercontent.com/jzcangshu/lottery_info_public/master/lottery_info.json'
-
-    '读取单个账号信息'
-    account_num = accounts['num'] #读取账号编号
-    account_notice = accounts['notice'] #读取账号备注名称
-    reply_waiting = accounts['reply_waiting'] #读取账号回复延迟（上下浮动50%）
-    cookie_input = accounts['cookies'] #读取对应CK
-    cookies = cookie_seperator(cookie_input) #格式化CK
-    proxies = {
-            'http': os.environ.get('HTTP_PROXY'),
-            'https': os.environ.get('HTTPS_PROXY')
-    }    
-    #不填则使用系统代理
-    http_proxy = accounts.get('HTTP_PROXY', '')
-    https_proxy = accounts.get('HTTPS_PROXY', '')
-    waiting_before_use = accounts.get('WAITING_BEFORE_USE', '')
-    # 如果cookies为空，则跳过当前循环
-    if not cookies:
-        print("未找到cookies,下一个!")        #其实应该再检测是否有下一个账号，没时间啦
-        ready_to_send+="未找到cookies,下一个!\n"
-        continue
-    if http_proxy:
-        proxies['http']=http_proxy
-    if https_proxy:
-        proxies['https']=https_proxy
-    if waiting_before_use:
-        print("随机暂停",waiting_before_use,"s")
-        time.sleep(waiting_before_use)
-    else :
-        Interval=random.randint(60,600)
-        print("未填入暂停时间，随机暂停",Interval,"s")
-        time.sleep(Interval)
 
     '初始化回复帖子所用到的headers & data'
     headers={
@@ -159,11 +86,85 @@ for accounts in config:
     data_for_reply={
         'time':str(int(time.time())),
         't': '',
-        'id':id,
+        'id': str(id),
         'reply_id':'',
         'content':'waiting 4 initializing'
     }
 
+    site = 'https://www.zfrontier.com/app/flow/' + hash_id
+    reply_content = random.choice(accounts['chat'])
+    reply='<p>' + reply_content + '<p>'
+    headers['Referer'] = site
+    headers['User-Agent'] = UA
+    data_for_reply['content'] = reply
+#    add_response = requests.post('https://www.zfrontier.com/api/circle/zanFlow', cookies=cookies, headers=headers, data=data_for_add).text
+#    add_match_list = re.findall(r'\d+', add_response)
+#    if add_match_list[0]=='0':
+#        print('点赞成功!')
+#    else :
+#        print('点赞失败!')
+    # 回复帖子
+
+    reply_response = requests.post('https://www.zfrontier.com/v2/flow/reply', cookies=cookies, headers=headers, data=data_for_reply, proxies=proxies, verify=False).json
+    reply_match_list = re.findall(r'\d+', str(reply_response))
+    if reply_match_list[0]=='200':
+        return True  #回复成功
+    else:
+        return False #回复失败
+
+'qq_add用于存储本轮中需要被推送加群的QQ群'
+qq_add = ''
+'qualified_qq存储所有已经添加过的QQ群用于查重，减少推送量'
+qq = open('qualified_qq.txt','r', encoding="UTF-8")
+qualified_qq = qq.read()
+qq.close()
+
+#——————————下方开始主程序——————————#
+with open('config.json', 'r', encoding="UTF-8") as f:
+    config = json.load(f)
+    
+ready_to_send=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' 开始任务…… \n'
+    
+for accounts in config:
+    #——————————下方区域为初始化变量——————————#
+
+    'flag变量用于重试检测是否能够获取到抽奖数据JSON'
+    flag = False
+
+    'lottery_info.json 文件地址'
+    api = 'https://raw.githubusercontent.com/jzcangshu/lottery_info_public/master/lottery_info.json'
+
+    '读取单个账号信息'
+    account_num = accounts['num'] #读取账号编号
+    account_notice = accounts['notice'] #读取账号备注名称
+    reply_waiting = accounts['reply_waiting'] #读取账号回复延迟（上下浮动50%）
+    cookie_input = accounts['cookies'] #读取对应CK
+    cookies = cookie_seperator(cookie_input) #格式化CK
+    UA = accounts['UA'] #读取UserAgent
+    proxies = {
+            'http': os.environ.get('HTTP_PROXY'),
+            'https': os.environ.get('HTTPS_PROXY')
+    }    
+    #不填则使用系统代理
+    http_proxy = accounts.get('HTTP_PROXY', '')
+    https_proxy = accounts.get('HTTPS_PROXY', '')
+    waiting_before_use = accounts.get('WAITING_BEFORE_USE', '')
+    # 如果cookies为空，则跳过当前循环
+    if not cookies:
+        print("未找到cookies,下一个!")        #其实应该再检测是否有下一个账号，没时间啦
+        ready_to_send+="未找到cookies,下一个!\n"
+        continue
+    if http_proxy:
+        proxies['http']=http_proxy
+    if https_proxy:
+        proxies['https']=https_proxy
+    if waiting_before_use:
+        print("随机暂停",waiting_before_use,"s")
+        time.sleep(int(waiting_before_use))
+    else :
+        Interval=random.randint(60,600)
+        print("未填入暂停时间，随机暂停",Interval,"s")
+        time.sleep(Interval)
 
 
     #——————————开始单个账号抽奖——————————#
@@ -177,25 +178,29 @@ for accounts in config:
      ⑥所有账号运行结束后统一进行加群推送
     '''
     
-    for cnt in range(3):
-        response = requests.get(api)
-        if response.status_code == 200:
-            lottery_data_json = json.loads(response.text)
-            flag = True
-            break
-        else:
+    for cnt in range(10):
+        try:
+            print('开始获取公共API抽奖数据...')
+            response = requests.get(api, proxies=proxies, verify=False, timeout=5)
+            if response.status_code == 200:
+                lottery_data_json = json.loads(response.text)
+                flag = True
+                break
+        except:
             print('【严重错误】获取公共抽奖数据失败,请检查你是否能够正常访问GitHub!')
+            time.sleep(8)
             print('自动重试（' + str(cnt+1) + '）...')
     if flag == False:
         print('【严重错误】尝试获取抽奖数据3次失败，开始推送错误')
-        ready_to_send += '抽奖数据获取失败，任务已被终止'
-        # 推送完毕之后break
+        ready_to_send += '抽奖数据获取失败，任务已被终止\n'
+        send('ZF_Lottery_Bot抽奖通知',ready_to_send)
+        break
     
     # 检测是否存在账号对应的dyid文件，如果没有则创建
-    dyid_file = open('/dyids/dyids'+str(account_num)+'.txt','a+', encoding="UTF-8")
+    dyid_file = open('./dyids/dyids'+str(account_num)+'.txt','a+')
     dyid_file.close()
     # 读取并存储dyid文件中已有的dyids数据（逗号分隔）
-    dyid_file = open('/dyids/dyids'+str(account_num)+'.txt','r', encoding="UTF-8") 
+    dyid_file = open('./dyids/dyids'+str(account_num)+'.txt','r', encoding="UTF-8") 
     dyids = dyid_file.read()
     dyid_file.close()
     # 遍历抽奖数据文件
@@ -208,11 +213,13 @@ for accounts in config:
         lottery_jq_flag = data['jq_flag']
 
         if lottery_hash_id in dyids: # 已参与的抽奖
+            ready_to_send += '【已参与过】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
             continue
         else:
             if lottery_time_checker(lottery_time): #判断是否已经开奖
                 if reply_to_lottery(lottery_id,lottery_hash_id): #如果回复成功
-                    print('参与成功：'+str(lottery_id))
+                    ready_to_send = '【参与成功】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
+                    print('【参与成功】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                     Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
                     print("随机暂停",Interval,"秒")
                     time.sleep(Interval)
@@ -224,11 +231,14 @@ for accounts in config:
                         qualified_qq += lottery_qq + ','
                 
                 else:
-                    print('参与失败：'+str(lottery_id))
+                    ready_to_send += '【参与失败】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
+                    print('【参与失败】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                     Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
                     print("随机暂停",Interval,"秒")
                     time.sleep(Interval)
-    dyid_file = open('/dyids/dyids'+str(account_num)+'.txt','w', encoding="UTF-8") 
+            else:
+                ready_to_send += '【过期抽奖】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
+    dyid_file = open('./dyids/dyids'+str(account_num)+'.txt','w', encoding="UTF-8") 
     dyid_file.write(dyids)
     dyid_file.close()
 
@@ -238,4 +248,5 @@ qq.write(qualified_qq)
 qq.close()
 
 #推送qq_add变量（需要添加的QQ群号）  和   ready_to_send变量（日志）
-    
+content = '本次运行新增QQ群:\n'+qq_add + '——————————————————————————————\n' + '运行日志\n' + ready_to_send
+send('ZF_Lottery_Bot抽奖通知',content)
