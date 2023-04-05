@@ -26,6 +26,7 @@ def spider(r,article_cnt):
 
         #进行去重过滤
         if str(article['id']) in json_str: #如果该抽奖已被存储过则跳过
+            print('跳过一个已存储的帖子：',article['hash_id'],'  ('+str(article_cnt)+')')
             article_cnt -= 1
             continue
 
@@ -77,14 +78,11 @@ proxies = {
     'https': os.environ.get('HTTPS_PROXY')
 }
 
-cfp = configparser.RawConfigParser()
-cfp.read("config.ini")
 '读取CK'
-# cookie_input = cfp.get("Cookies", "ck")
 cookie_input = 'ZF_CLIENT_ID=1677983223183-5275536195173502; _bl_uid=j6la1eC2u4zr3Fvqvyz7oq9hFqzF; user-token=eyJpdiI6IndIWkRzUUlmbTJmNVNvSEZ1d1U5aXc9PSIsInZhbHVlIjoiRStYWDhYVnhubmpCODFYaDFqd293MWxHTEdwdmJDT1FjUHNjcE5UclJBVVNkTURuUDBtUncxWHVOeUZIZmM1cCIsIm1hYyI6IjliNTNkMjIwODkzYjhmZGQ1YzgwNjZjNjdmOTFiMjYyNzliMjcxNzJiYzZjNWVmOGUzY2JiZDNiNjU2NmEwYjgifQ%3D%3D; userDisplayInfo=%7B%22userId%22%3A3755695%2C%22hashId%22%3A%22dDWyjldWrZ6wzO%22%2C%22nickname%22%3A%22%E5%B0%8FDXG%22%2C%22avatarPath%22%3A%22%5C%2F%5C%2Fimg.zfrontier.com%5C%2Favatar%5C%2F211214%5C%2Fava61b8b528b3b7d%22%2C%22viewUrl%22%3A%22%5C%2Fapp%5C%2Fuser%5C%2FdDWyjldWrZ6wzO%22%7D; userServerInfo=eyJpdiI6Im1ZY1lqMTZzZEcxb1R0Z3ZrcWdDVFE9PSIsInZhbHVlIjoib2hNK2s0dXZJeHAyXC96K2xZSTNEdTBiME43WHJBd3M1N2h5WDZDZHRcL3E0WGQ1MzlBU3M2MXFUTnZvd2hWenZ0dTM0bVNiRUxOSkx3a0NSUnJOYXNFZz09IiwibWFjIjoiYmFhOTVkNDI1Mjk4ZGJmMWE5YjAzNGNhMjlkNzQyMjVlMjNlNGZlNmI4NTEyYjk5MDM0ZmE2NGI2YTlhY2JjNSJ9'
 cookies = cookie_seperator(cookie_input)
 '读取爬取的文章页数'
-set_pages_cnt = 1
+set_pages_cnt = 5
 headers = {
     'Accept': 'application/json, textain, */*',
     'Accept-Language': 'zh-CN,zh;q=0.9',
@@ -129,7 +127,7 @@ data = {
     'offset': '',
     'tagIds[0]': '2007',
 }
-pages_cnt = 1    #获取帖子列表页数
+pages_cnt = 1    #初始化获取帖子列表页数
 article_cnt = -1 #未定义 在spider程序中用于统计这一页获取到的帖子数量
 
 
@@ -142,3 +140,5 @@ while pages_cnt <= set_pages_cnt:
     print('【爬取第',pages_cnt,'页情报】共获取到',article_cnt,'条帖子信息')
     spider(response,article_cnt) #传入抽奖信息解析函数
     pages_cnt += 1
+
+os.startfile(r'C:\Users\Administrator\Desktop\Zfrontier\lottery_info_public\auto_commit.py')
