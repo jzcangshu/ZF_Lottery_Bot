@@ -1,8 +1,8 @@
 [
     {
-        "num": 1
-        "notice": ""
-        "reply_waiting": 60
+        "num": 1,
+        "notice": "",
+        "reply_waiting": 60,
         "cookies": "若多账号则依次复制",
         "HTTP_PROXY":"此项若不填则使用系统代理",
         "HTTPS_PROXY":"同上",
@@ -15,9 +15,9 @@
         ]
     },    
     {
-        "num": 2
-        "notice": ""
-        "reply_waiting": 60
+        "num": 2,
+        "notice": "",
+        "reply_waiting": 60,
         "cookies": "",
         "HTTP_PROXY":"",
         "HTTPS_PROXY":"",
