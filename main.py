@@ -177,7 +177,8 @@ for accounts in config:
      ⑤根据lottery_info.json中的加群信息判断是否需要加群 -> qualified_qq.txt加群查重 -> 添加加群信息到待推送str中(一行一个)
      ⑥所有账号运行结束后统一进行加群推送
     '''
-    
+    print('账号'+str(account_num)+'开始抽奖')
+    ready_to_send += '【账号'+str(account_num)+'开始抽奖】'
     for cnt in range(10):
         try:
             print('开始获取公共API抽奖数据...')
@@ -213,6 +214,7 @@ for accounts in config:
         lottery_jq_flag = data['jq_flag']
 
         if lottery_hash_id in dyids: # 已参与的抽奖
+            print('【已参与过】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
             ready_to_send += '【已参与过】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
             continue
         else:
@@ -237,6 +239,7 @@ for accounts in config:
                     print("随机暂停",Interval,"秒")
                     time.sleep(Interval)
             else:
+                print('【过期抽奖】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                 ready_to_send += '【过期抽奖】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
     dyid_file = open('./dyids/dyids'+str(account_num)+'.txt','w', encoding="UTF-8") 
     dyid_file.write(dyids)
