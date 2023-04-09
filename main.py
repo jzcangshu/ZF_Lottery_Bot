@@ -217,7 +217,7 @@ try:
             else:
                 if lottery_time_checker(lottery_time): #判断是否已经开奖
                     if reply_to_lottery(lottery_id,lottery_hash_id): #如果回复成功
-                        ready_to_send = '【参与成功】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
+                        ready_to_send += '【参与成功】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
                         print('【参与成功】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                         Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
                         print("随机暂停",Interval,"秒")
