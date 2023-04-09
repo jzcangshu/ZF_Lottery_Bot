@@ -1,14 +1,9 @@
 # -- coding: utf-8 --**
 #此程序为参与抽奖主程序
-import configparser
 import requests
 import json
 import os
 import time
-import hmac
-import hashlib
-import base64
-import urllib.parse
 import random
 import datetime
 import re
@@ -141,7 +136,6 @@ try:
         account_notice = accounts['notice'] #读取账号备注名称
         reply_waiting = accounts['reply_waiting'] #读取账号回复延迟（上下浮动50%）
         cookie_input = accounts['cookies'] #读取对应CK
-        cookies = cookie_seperator(cookie_input) #格式化CK
         UA = accounts['UA'] #读取UserAgent
         proxies = {
                 'http': os.environ.get('HTTP_PROXY'),
@@ -152,10 +146,11 @@ try:
         https_proxy = accounts.get('HTTPS_PROXY', '')
         waiting_before_use = accounts.get('WAITING_BEFORE_USE', '')
         # 如果cookies为空，则跳过当前循环
-        if not cookies:
+        if not cookie_input:
             print("未找到cookies,下一个!")        #其实应该再检测是否有下一个账号，没时间啦
             ready_to_send+="未找到cookies,下一个!\n"
             continue
+        cookies = cookie_seperator(cookie_input) #格式化CK
         if http_proxy:
             proxies['http']=http_proxy
         if https_proxy:
