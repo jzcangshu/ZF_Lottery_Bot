@@ -53,9 +53,10 @@ def spider(r,article_cnt):
                     if '群' in awards['name']: #奖品名称中写明需要加群领奖
                         temp_lottery_info_dict['jq_flag'] = 'T'
                         temp_lottery_info_dict['lottery_qq'] = response['data']['flow']['plate']['name'] + ' ' + response['data']['flow']['plate']['qq']  #str格式的抽奖群号+空格+群昵称
-
+                    else:
+                        temp_lottery_info_dict['lottery_qq'] = ''
                 data_list.append(temp_lottery_info_dict) # 将新的JSON数据添加到Python对象中（单个抽奖信息）
-        time.sleep(10)
+        time.sleep(15)
     json_str = json.dumps(data_list)         # 将Python对象转换为JSON格式的字符串
 
     f = open('lottery_info.json','w', encoding="UTF-8")
@@ -83,7 +84,7 @@ proxies = {
 cookie_input = 'ZF_CLIENT_ID=1677983223183-5275536195173502; _bl_uid=j6la1eC2u4zr3Fvqvyz7oq9hFqzF; user-token=eyJpdiI6IndIWkRzUUlmbTJmNVNvSEZ1d1U5aXc9PSIsInZhbHVlIjoiRStYWDhYVnhubmpCODFYaDFqd293MWxHTEdwdmJDT1FjUHNjcE5UclJBVVNkTURuUDBtUncxWHVOeUZIZmM1cCIsIm1hYyI6IjliNTNkMjIwODkzYjhmZGQ1YzgwNjZjNjdmOTFiMjYyNzliMjcxNzJiYzZjNWVmOGUzY2JiZDNiNjU2NmEwYjgifQ%3D%3D; userDisplayInfo=%7B%22userId%22%3A3755695%2C%22hashId%22%3A%22dDWyjldWrZ6wzO%22%2C%22nickname%22%3A%22%E5%B0%8FDXG%22%2C%22avatarPath%22%3A%22%5C%2F%5C%2Fimg.zfrontier.com%5C%2Favatar%5C%2F211214%5C%2Fava61b8b528b3b7d%22%2C%22viewUrl%22%3A%22%5C%2Fapp%5C%2Fuser%5C%2FdDWyjldWrZ6wzO%22%7D; userServerInfo=eyJpdiI6Im1ZY1lqMTZzZEcxb1R0Z3ZrcWdDVFE9PSIsInZhbHVlIjoib2hNK2s0dXZJeHAyXC96K2xZSTNEdTBiME43WHJBd3M1N2h5WDZDZHRcL3E0WGQ1MzlBU3M2MXFUTnZvd2hWenZ0dTM0bVNiRUxOSkx3a0NSUnJOYXNFZz09IiwibWFjIjoiYmFhOTVkNDI1Mjk4ZGJmMWE5YjAzNGNhMjlkNzQyMjVlMjNlNGZlNmI4NTEyYjk5MDM0ZmE2NGI2YTlhY2JjNSJ9'
 cookies = cookie_seperator(cookie_input)
 '读取爬取的文章页数'
-set_pages_cnt = 5
+set_pages_cnt = 2
 headers = {
     'Accept': 'application/json, textain, */*',
     'Accept-Language': 'zh-CN,zh;q=0.9',
