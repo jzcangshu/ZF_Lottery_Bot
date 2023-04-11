@@ -48,13 +48,14 @@ def spider(r,article_cnt):
         if response['data']['flow']['lottery'] != None: #如果抽奖信息非空
             if response['data']['flow']['lottery']['status_str'] == '待抽奖':
                 temp_lottery_info_dict['lottery_time'] = response['data']['flow']['lottery']['lottery_at'] #开奖时间 格式-> '2023-03-31 20:20'
-                temp_lottery_info_dict['lottery_qq'] = response['data']['flow']['plate']['name'] + ' ' + response['data']['flow']['plate']['qq']  #str格式的抽奖群号+空格+群昵称
                 temp_lottery_info_dict['jq_flag'] = 'F' #初始化变量“是否需要加群”
                 for awards in response['data']['flow']['lottery']['prizesGroup']: #jq_flag存储是否需要加群领奖（值为T或F）
                     if '群' in awards['name']: #奖品名称中写明需要加群领奖
                         temp_lottery_info_dict['jq_flag'] = 'T'
+                        temp_lottery_info_dict['lottery_qq'] = response['data']['flow']['plate']['name'] + ' ' + response['data']['flow']['plate']['qq']  #str格式的抽奖群号+空格+群昵称
+
                 data_list.append(temp_lottery_info_dict) # 将新的JSON数据添加到Python对象中（单个抽奖信息）
-        time.sleep(15)
+        time.sleep(10)
     json_str = json.dumps(data_list)         # 将Python对象转换为JSON格式的字符串
 
     f = open('lottery_info.json','w', encoding="UTF-8")
