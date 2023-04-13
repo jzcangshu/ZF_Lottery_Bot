@@ -212,7 +212,6 @@ try:
 
             if lottery_hash_id in dyids: # 已参与的抽奖
                 print('【已参与过】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
-                ready_to_send += '【已参与过】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
                 continue
             else:
                 if lottery_time_checker(lottery_time): #判断是否已经开奖
