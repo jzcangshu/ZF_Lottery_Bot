@@ -1,9 +1,14 @@
 # -- coding: utf-8 --**
 #此程序为参与抽奖主程序
+import configparser
 import requests
 import json
 import os
 import time
+import hmac
+import hashlib
+import base64
+import urllib.parse
 import random
 import datetime
 import re
@@ -138,6 +143,7 @@ try:
         account_notice = accounts['notice'] #读取账号备注名称
         reply_waiting = accounts['reply_waiting'] #读取账号回复延迟（上下浮动50%）
         cookie_input = accounts['cookies'] #读取对应CK
+        cookies = cookie_seperator(cookie_input) #格式化CK
         UA = accounts['UA'] #读取UserAgent
         proxies = {
                 'http': os.environ.get('HTTP_PROXY'),
@@ -148,11 +154,10 @@ try:
         https_proxy = accounts.get('HTTPS_PROXY', '')
         waiting_before_use = accounts.get('WAITING_BEFORE_USE', '')
         # 如果cookies为空，则跳过当前循环
-        if not cookie_input:
+        if not cookies:
             print("未找到cookies,下一个!")        #其实应该再检测是否有下一个账号，没时间啦
             ready_to_send+="未找到cookies,下一个!\n"
             continue
-        cookies = cookie_seperator(cookie_input) #格式化CK
         if http_proxy:
             proxies['http']=http_proxy
         if https_proxy:
@@ -176,8 +181,8 @@ try:
         ⑤根据lottery_info.json中的加群信息判断是否需要加群 -> qualified_qq.txt加群查重 -> 添加加群信息到待推送str中(一行一个)
         ⑥所有账号运行结束后统一进行加群推送
         '''
-        print('——————————账号'+str(account_num)+'开始抽奖——————————\n')
-        ready_to_send += '——————【账号'+str(account_num)+'开始抽奖】——————\n'
+        print('【账号'+str(account_num)+'开始抽奖】\n')
+        ready_to_send += '【账号'+str(account_num)+'开始抽奖】\n'
         for cnt in range(10):
             try:
                 print('开始获取公共API抽奖数据...\n')
@@ -213,13 +218,13 @@ try:
             lottery_jq_flag = data['jq_flag']
 
             if lottery_hash_id in dyids: # 已参与的抽奖
-                print('【已参与过】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+                print('[已参与过]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                 continue
             else:
                 if lottery_time_checker(lottery_time): #判断是否已经开奖
                     if reply_to_lottery(lottery_id,lottery_hash_id): #如果回复成功
-                        ready_to_send += '【参与成功】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
-                        print('【参与成功】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+                        ready_to_send += '[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
+                        print('[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                         Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
                         print("随机暂停",Interval,"秒")
                         time.sleep(Interval)
@@ -231,14 +236,14 @@ try:
                             qualified_qq += lottery_qq + ','
                     
                     else:
-                        ready_to_send += '【参与失败】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
-                        print('【参与失败】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+                        ready_to_send += '[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
+                        print('[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                         Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
                         print("随机暂停",Interval,"秒")
                         time.sleep(Interval)
                 else:
-                    print('【过期抽奖】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
-                    ready_to_send += '【过期抽奖】'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
+                    print('[过期抽奖]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+                    ready_to_send += '[过期抽奖]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
         dyid_file = open('./dyids/dyids'+str(account_num)+'.txt','w', encoding="UTF-8") 
         dyid_file.write(dyids)
         dyid_file.close()
@@ -249,7 +254,7 @@ try:
     qq.close()
 
     #推送qq_add变量（需要添加的QQ群号）  和   ready_to_send变量（日志）
-    content = '本次运行新增QQ群:\n'+qq_add + '——————————————————————————————\n' + '运行日志\n' + ready_to_send
+    content = '【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
     send('ZF_Lottery_Bot抽奖通知',content)
 
 
