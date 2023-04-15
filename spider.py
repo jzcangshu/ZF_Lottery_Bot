@@ -5,6 +5,8 @@ import requests
 import json
 import time
 import os
+import urllib3
+urllib3.disable_warnings()
 
 #——————————下方区域放置所有函数备用——————————#
 'spider函数用于解析list中获取到的文章信息并存储(list内无法判断是否含有抽奖信息)'
