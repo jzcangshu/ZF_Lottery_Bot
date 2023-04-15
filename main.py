@@ -9,6 +9,8 @@ import datetime
 import re
 import traceback
 from notify import send
+import urllib3
+urllib3.disable_warnings()
 
 #——————————下方区域放置所有函数&全局变量备用——————————#
 'cookie_seperator函数用于格式化从config.ini中读取到的CK变量备用 【注意】cookie中只应包含值 不要含有中文！'
