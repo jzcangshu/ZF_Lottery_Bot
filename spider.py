@@ -155,6 +155,6 @@ while pages_cnt <= set_pages_cnt:
     pages_cnt += 1
 
 ready_to_send = '【新增' + str(newly_append) + '条抽奖数据】\n' + ready_to_send
-send('ZF_Lottery_Spider新增抽奖数据',ready_to_send)
+send('【ZF】新增抽奖数据' + str(newly_append) + '条',ready_to_send)
 
 os.startfile(r'C:\Users\Administrator\Desktop\Zfrontier\lottery_info_public\auto_commit.py')
