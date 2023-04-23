@@ -123,10 +123,15 @@ qualified_qq = qq.read()
 qq.close()
 
 #——————————下方开始主程序——————————#
-with open('config.json', 'r', encoding="UTF-8") as f:
-    config = json.load(f)
-    
-ready_to_send=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' 开始任务…… \n'
+try:
+	with open('config.json', 'r', encoding="UTF-8") as f:
+		config = json.load(f)
+		
+	ready_to_send=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' 开始任务…… \n'
+except Exception as e:
+    traceback.print_exception(e)
+    wait_for_it = input('【致命错误断点】Press enter to close the terminal window')
+
 
 try:
     for accounts in config:
@@ -196,7 +201,7 @@ try:
                 time.sleep(8)
                 print('自动重试（' + str(cnt+1) + '）...')
         if flag == False:
-            print('【严重错误】尝试获取抽奖数据3次失败，开始推送错误')
+            print('【严重错误】尝试获取抽奖数据10次失败，开始推送错误')
             ready_to_send += '抽奖数据获取失败，任务已被终止\n'
             send('ZF_Lottery_Bot抽奖通知',ready_to_send)
             break
@@ -243,7 +248,6 @@ try:
                         time.sleep(Interval)
                 else:
                     print('[过期抽奖]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
-                    ready_to_send += '[过期抽奖]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
         dyid_file = open('./dyids/dyids'+str(account_num)+'.txt','w', encoding="UTF-8") 
         dyid_file.write(dyids)
         dyid_file.close()
