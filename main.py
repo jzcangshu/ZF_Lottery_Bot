@@ -259,7 +259,7 @@ try:
 
     #推送qq_add变量（需要添加的QQ群号）  和   ready_to_send变量（日志）
     content = '【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
-    send('ZF_Lottery_Bot抽奖通知',content)
+    send('【ZF】抽奖日志',content)
 
 
 except Exception as e:
