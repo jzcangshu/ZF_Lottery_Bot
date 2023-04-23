@@ -12,6 +12,8 @@ from notify import send
 #——————————下方区域放置所有函数备用——————————#
 'spider函数用于解析list中获取到的文章信息并存储(list内无法判断是否含有抽奖信息)'
 def spider(r,article_cnt):
+    global newly_append
+    global ready_to_send
     f = open('lottery_info.json','r', encoding="UTF-8")
     json_str = f.read()               # 读取文件中原有的抽奖数据
     f.close()
