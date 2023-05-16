@@ -50,7 +50,7 @@ def spider(r,article_cnt):
         print('成功获取帖子详情：',article['hash_id'],'  ('+str(article_cnt)+')')
         article_cnt -= 1
             
-        if response['data']['flow']['lottery'] != None: #如果抽奖信息非空
+        if 'lottery' in response['data']['flow'] and response['data']['flow']['lottery'] != None: #如果抽奖信息非空
             if response['data']['flow']['lottery']['status_str'] == '待抽奖':
                 temp_lottery_info_dict['lottery_time'] = response['data']['flow']['lottery']['lottery_at'] #开奖时间 格式-> '2023-03-31 20:20'
                 temp_lottery_info_dict['jq_flag'] = 'F' #初始化变量“是否需要加群”
@@ -92,7 +92,7 @@ cookie_input = 'ZF_CLIENT_ID=1677983223183-5275536195173502; _bl_uid=j6la1eC2u4z
 cookies = cookie_seperator(cookie_input)
 
 '读取爬取的文章页数'
-set_pages_cnt = 3
+set_pages_cnt = 2
 
 headers = {
     'Accept': 'application/json, textain, */*',
