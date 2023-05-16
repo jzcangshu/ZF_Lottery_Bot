@@ -172,13 +172,15 @@ try:
 		ck = accounts['cookies']
 		hash = get_user_hash(ck)
 		accounts_hash_list[hash] = account_notice #把每个账号的hash加入到列表中 便于后续比对中奖者
-
+	check_file = open('checked_id.txt','a') #检查文件是否存在，否则创建
+	check_file.close()
 	with open('checked_id.txt', 'r', encoding="UTF-8") as f:
 		checked_ids = f.readline()
 	f.close()
 
 
 	#——————————下方开始主程序——————————#
+	
 	print('————————————开始检查',set_pages_cnt,'页中奖————————————')
 	while pages_cnt <= set_pages_cnt:
 		response = requests.post('https://www.zfrontier.com/v2/home/flow/list', proxies=proxies, cookies=cookies, headers=headers, data=data,verify=False).json()
