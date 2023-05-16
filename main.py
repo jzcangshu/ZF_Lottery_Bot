@@ -136,7 +136,7 @@ except Exception as e:
 try:
     for accounts in config:
         #——————————下方区域为初始化变量——————————#
-
+        have_sent = False
         'flag变量用于重试检测是否能够获取到抽奖数据JSON'
         flag = False
 
@@ -202,8 +202,10 @@ try:
                 print('自动重试（' + str(cnt+1) + '）...')
         if flag == False:
             print('【严重错误】尝试获取抽奖数据10次失败，开始推送错误')
+            content = '【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
             ready_to_send += '抽奖数据获取失败，任务已被终止\n'
             send('ZF_Lottery_Bot抽奖通知',ready_to_send)
+            have_sent = True
             break
         
         # 检测是否存在账号对应的dyid文件，如果没有则创建
@@ -257,9 +259,10 @@ try:
     qq.write(qualified_qq)
     qq.close()
 
-    #推送qq_add变量（需要添加的QQ群号）  和   ready_to_send变量（日志）
-    content = '【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
-    send('【ZF】抽奖日志',content)
+    if not have_sent:
+        #推送qq_add变量（需要添加的QQ群号）  和   ready_to_send变量（日志）
+        content = '【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
+        send('【ZF】抽奖日志',content)
 
 
 except Exception as e:
