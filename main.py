@@ -118,6 +118,8 @@ def reply_to_lottery(id,hash_id):
 'qq_add用于存储本轮中需要被推送加群的QQ群'
 qq_add = ''
 'qualified_qq存储所有已经添加过的QQ群用于查重，减少推送量'
+check_file = open('qualified_qq.txt','a', encoding="UTF-8")
+check_file.close() #防止文件不存在，否则创建
 qq = open('qualified_qq.txt','r', encoding="UTF-8")
 qualified_qq = qq.read()
 qq.close()
