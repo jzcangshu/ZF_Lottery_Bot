@@ -136,12 +136,14 @@ except Exception as e:
 
 
 try:
+    'have_engaged参数用于判断单个账号是否在本轮抽奖中参与了抽奖，如果没有需要参与的则跳过该账号以节省时间'
+    have_engaged = False
     for accounts in config:
         #——————————下方区域为初始化变量——————————#
+        'have_sent用于判断是否已经因为异常中断发送过一次抽奖日志，避免重复发送'
         have_sent = False
         'flag变量用于重试检测是否能够获取到抽奖数据JSON'
         flag = False
-
         'lottery_info.json 文件地址'
         api = 'https://raw.githubusercontent.com/jzcangshu/lottery_info_public/master/lottery_info.json'
 
@@ -169,13 +171,16 @@ try:
             proxies['http']=http_proxy
         if https_proxy:
             proxies['https']=https_proxy
-        if waiting_before_use:
-            print("随机暂停",waiting_before_use,"s")
-            time.sleep(int(waiting_before_use))
-        else :
-            Interval=random.randint(60,600)
-            print("未填入暂停时间，随机暂停",Interval,"s")
-            time.sleep(Interval)
+
+        if have_engaged: #如果上一个账号参与过了抽奖
+            if waiting_before_use:
+                print("随机暂停",waiting_before_use,"s")
+                time.sleep(int(waiting_before_use))
+            else:
+                Interval=random.randint(60,600)
+                print("未填入暂停时间，随机暂停",Interval,"s")
+                time.sleep(Interval)
+        have_engaged = False
 
 
         #——————————开始单个账号抽奖——————————#
@@ -190,7 +195,7 @@ try:
         '''
         print('【账号'+str(account_num)+'开始抽奖】\n')
         ready_to_send += '【账号'+str(account_num)+'开始抽奖】\n'
-        for cnt in range(10):
+        for cnt in range(20):
             try:
                 print('开始获取公共API抽奖数据...\n')
                 response = requests.get(api, proxies=proxies, verify=False, timeout=5)
@@ -200,13 +205,13 @@ try:
                     break
             except:
                 print('【严重错误】获取公共抽奖数据失败,请检查你是否能够正常访问GitHub!')
-                time.sleep(8)
+                time.sleep(30)
                 print('自动重试（' + str(cnt+1) + '）...')
         if flag == False:
-            print('【严重错误】尝试获取抽奖数据10次失败，开始推送错误')
+            print('【严重错误】尝试获取抽奖数据20次失败，开始推送错误')
             content = '【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
-            ready_to_send += '抽奖数据获取失败，任务已被终止\n'
-            send('ZF_Lottery_Bot抽奖通知',ready_to_send)
+            content += '抽奖数据获取失败，任务已被终止\n'
+            send('【ZF】抽奖被中断',content)
             have_sent = True
             break
         
@@ -232,6 +237,7 @@ try:
             else:
                 if lottery_time_checker(lottery_time): #判断是否已经开奖
                     if reply_to_lottery(lottery_id,lottery_hash_id): #如果回复成功
+                        have_engaged = True
                         ready_to_send += '[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
                         print('[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                         Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
