@@ -4,6 +4,7 @@ import json
 import os
 import time
 import urllib3
+import re
 urllib3.disable_warnings()
 from notify import send
 
@@ -94,6 +95,8 @@ def get_user_hash(s):
     hash = temp[:-4]
     return hash
 
+def get_user_hash_2(s):
+    return re.findall(r'%22hashId%22%3A%22(.+?)%', s)[0]
 
 #——————————下方区域为初始化变量——————————#
 got_new_award = False #表示本轮检测是否有新增中奖
@@ -170,7 +173,7 @@ try:
 			account_notice = '账号'+account_num
 
 		ck = accounts['cookies']
-		hash = get_user_hash(ck)
+		hash = get_user_hash_2(ck)
 		accounts_hash_list[hash] = account_notice #把每个账号的hash加入到列表中 便于后续比对中奖者
 	check_file = open('checked_id.txt','a') #检查文件是否存在，否则创建
 	check_file.close()
