@@ -1,14 +1,9 @@
 # -- coding: utf-8 --**
 #此程序为参与抽奖主程序
-import configparser
 import requests
 import json
 import os
 import time
-import hmac
-import hashlib
-import base64
-import urllib.parse
 import random
 import datetime
 import re
@@ -81,7 +76,6 @@ def reply_to_lottery(id,hash_id):
         'Sec-Fetch-Site': 'same-origin',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.69',
         'X-CLIENT-LOCALE': 'zh-CN',
-        'X-CSRF-TOKEN': '',
         'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"Windows"',
@@ -229,7 +223,7 @@ try:
             lottery_hash_id = data['hash_id']
             lottery_time = data['lottery_time']
             lottery_qq = data['lottery_qq']
-            lottery_jq_flag = data['jq_flag']
+            lottery_jq_flag = False
 
             if lottery_hash_id in dyids: # 已参与的抽奖
                 print('[已参与过]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
@@ -245,6 +239,9 @@ try:
                         time.sleep(Interval)
                         #写入对应的dyids
                         dyids += lottery_hash_id + ','
+
+                        if data['jq_flag'] == 'T':
+                            lottery_jq_flag = True
                         #如果抽奖要求加群 并且 本轮所有账号的抽奖中都还未涉及过添加此群 并且 该群未出现在已添加的群聊中(qualified_qq.txt) -> 加入加群推送STR
                         if lottery_jq_flag and (lottery_qq not in qq_add) and (lottery_qq not in qualified_qq):
                             qq_add += lottery_qq + '\n'
