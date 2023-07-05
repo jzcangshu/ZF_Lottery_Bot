@@ -30,7 +30,7 @@ def spider(r,article_cnt):
         view_url = 'https://www.zfrontier.com/app/flow/detail/' + article['hash_id']
 
         #进行去重过滤
-        if str(article['id']) in json_str: #如果该抽奖已被存储过则跳过
+        if article['hash_id'] in json_str: #如果该抽奖已被存储过则跳过
             print('跳过一个已存储的帖子：',article['hash_id'],'  ('+str(article_cnt)+')')
             article_cnt -= 1
             continue
@@ -55,17 +55,17 @@ def spider(r,article_cnt):
         if 'lottery' in response['data']['flow'] and response['data']['flow']['lottery'] != None: #如果抽奖信息非空
             if response['data']['flow']['lottery']['status_str'] == '待抽奖':
                 temp_lottery_info_dict['lottery_time'] = response['data']['flow']['lottery']['lottery_at'] #开奖时间 格式-> '2023-03-31 20:20'
+                temp_lottery_info_dict['lottery_qq'] = ''
                 temp_lottery_info_dict['jq_flag'] = 'F' #初始化变量“是否需要加群”
                 for awards in response['data']['flow']['lottery']['prizesGroup']: #jq_flag存储是否需要加群领奖（值为T或F）
                     if '群' in awards['name'] or check_words(response): #奖品名称中写明需要加群领奖
                         temp_lottery_info_dict['jq_flag'] = 'T'
                         temp_lottery_info_dict['lottery_qq'] = response['data']['flow']['plate']['name'] + ' ' + response['data']['flow']['plate']['qq']  #str格式的抽奖群号+空格+群昵称
-                    else:
-                        temp_lottery_info_dict['lottery_qq'] = ''
+                        break
                 data_list.append(temp_lottery_info_dict) # 将新的JSON数据添加到Python对象中（存储单个抽奖信息）
                 newly_append += 1
                 ready_to_send += article['hash_id'] +'  '+ response['data']['flow']['lottery']['lottery_at'] + '\n'
-        time.sleep(60)
+        time.sleep(70)
     json_str = json.dumps(data_list)         # 将Python对象转换为JSON格式的字符串
 
     f = open('lottery_info.json','w', encoding="UTF-8")
@@ -99,7 +99,7 @@ proxies = {
 }
 
 '读取爬取的文章页数'
-set_pages_cnt = 2
+set_pages_cnt = 50
 
 '读取CK'
 cookie_input = 'ZF_CLIENT_ID=1686465249402-12907216653696674; _bl_uid=3qlt8i6krRe1s4vht62wttvfOIh2; user-token=eyJpdiI6Ik4xYjJ6bzZJQ0hnWjdCWEtiYkJ6dUE9PSIsInZhbHVlIjoiM0tIOFh5Q0hZK3B6NlV3TEhJTmp3ajZ6ZGtlaTFDc0RVVUFvRVZxK2d3WlpsZTBpTStaOW9QaHQyRlp4d1h5byIsIm1hYyI6ImM5ODFiOTI5ZDhjYzgwNDgzMGQ3NzVhYTNhMTRlMGNjOWQ0MWMwNWMyY2FkYjkxMjJlY2YwOWE5YzFhOWEyOWUifQ%3D%3D; userDisplayInfo=%7B%22userId%22%3A3832500%2C%22hashId%22%3A%22qO7lmY8L5pEdP%22%2C%22nickname%22%3A%22%E5%8F%AB%E6%88%91%E4%BB%93%E9%BC%A0%22%2C%22avatarPath%22%3A%22%5C%2F%5C%2Fimg.zfrontier.com%5C%2Fava%5C%2F20220529%5C%2Fzf62931cfca88c5%22%2C%22viewUrl%22%3A%22%5C%2Fapp%5C%2Fuser%5C%2FqO7lmY8L5pEdP%22%7D; userServerInfo=eyJpdiI6InNHMk1SOGVVZFd0XC9zY205dENsMkd3PT0iLCJ2YWx1ZSI6IkhVTVBWVXdiZ3p6OFJiMXZlSm8xZ2NBODYxSVRvM1RWeEpzc1d1QmZBTnVIOERaUENSOFFpUWlqOE9OV0JPT1owc1JhK2JhXC82cVVhOFh6UHVZbVwvTHc9PSIsIm1hYyI6IjRiNGY1MDhhNDUwMzUzMjA0MzEwMjExZjU4NDgyNWIwNWFjNjE1NGI3MTIzNDY3NmRhYzBiMTU3YTg2ZTY1OWEifQ%3D%3D'
@@ -164,6 +164,7 @@ print('————————————开始获取',set_pages_cnt,'页情�
 while pages_cnt <= set_pages_cnt:
     response = requests.post('https://www.zfrontier.com/v2/home/flow/list', proxies=proxies, cookies=cookies, headers=headers, data=data,verify=False).json()
     article_cnt = len(response['data']['list'])
+    data['offset'] = response['data']['offset']
     print('【爬取第',pages_cnt,'页情报】共获取到',article_cnt,'条帖子信息')
     spider(response,article_cnt) #传入抽奖信息解析函数
     pages_cnt += 1
