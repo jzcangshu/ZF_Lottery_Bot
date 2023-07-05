@@ -7,6 +7,7 @@ import urllib3
 import re
 urllib3.disable_warnings()
 from notify import send
+import traceback
 
 '读取爬取的文章页数，在这里设置检查的开奖帖子页数'
 set_pages_cnt = 25
@@ -30,11 +31,13 @@ def spider(r,article_cnt):
         temp_lottery_info_dict = {}   # 存储单个帖子中的抽奖信息
         temp_lottery_info_dict['id'] = article['id']
         temp_lottery_info_dict['hash_id'] = article['hash_id']
-        view_url = 'https://www.zfrontier.com/v2/flow/detail/' + article['hash_id']
+        view_url = 'https://www.zfrontier.com/app/flow/' + article['hash_id']
 
         cnt = 0 #重试请求次数计数器
         view_headers['Referer'] = view_url
-        response = requests.post(view_url, proxies=proxies,cookies=cookies, headers=view_headers, data=data, verify=False).json() # 获取详情
+        view_url = 'https://www.zfrontier.com/v2/flow/detail'
+        view_data['id'] = article['hash_id']
+        response = requests.post(view_url, proxies=proxies,cookies=cookies, headers=view_headers, data=view_data, verify=False).json() # 获取详情
         while cnt<= 3 and ( response['msg'] == '操作太频繁了' or response['data'] == []):
             cnt += 1
             print('【风控警告】自动暂停',str(60*cnt),'秒...')
@@ -109,7 +112,7 @@ proxies = {
 }
 
 '读取CK'
-cookie_input = 'ZF_CLIENT_ID=1677983223183-5275536195173502; _bl_uid=j6la1eC2u4zr3Fvqvyz7oq9hFqzF; user-token=eyJpdiI6IndIWkRzUUlmbTJmNVNvSEZ1d1U5aXc9PSIsInZhbHVlIjoiRStYWDhYVnhubmpCODFYaDFqd293MWxHTEdwdmJDT1FjUHNjcE5UclJBVVNkTURuUDBtUncxWHVOeUZIZmM1cCIsIm1hYyI6IjliNTNkMjIwODkzYjhmZGQ1YzgwNjZjNjdmOTFiMjYyNzliMjcxNzJiYzZjNWVmOGUzY2JiZDNiNjU2NmEwYjgifQ%3D%3D; userDisplayInfo=%7B%22userId%22%3A3755695%2C%22hashId%22%3A%22dDWyjldWrZ6wzO%22%2C%22nickname%22%3A%22%E5%B0%8FDXG%22%2C%22avatarPath%22%3A%22%5C%2F%5C%2Fimg.zfrontier.com%5C%2Favatar%5C%2F211214%5C%2Fava61b8b528b3b7d%22%2C%22viewUrl%22%3A%22%5C%2Fapp%5C%2Fuser%5C%2FdDWyjldWrZ6wzO%22%7D; userServerInfo=eyJpdiI6Im1ZY1lqMTZzZEcxb1R0Z3ZrcWdDVFE9PSIsInZhbHVlIjoib2hNK2s0dXZJeHAyXC96K2xZSTNEdTBiME43WHJBd3M1N2h5WDZDZHRcL3E0WGQ1MzlBU3M2MXFUTnZvd2hWenZ0dTM0bVNiRUxOSkx3a0NSUnJOYXNFZz09IiwibWFjIjoiYmFhOTVkNDI1Mjk4ZGJmMWE5YjAzNGNhMjlkNzQyMjVlMjNlNGZlNmI4NTEyYjk5MDM0ZmE2NGI2YTlhY2JjNSJ9'
+cookie_input = 'ZF_CLIENT_ID=1686465249402-12907216653696674; _bl_uid=3qlt8i6krRe1s4vht62wttvfOIh2; user-token=eyJpdiI6Ik4xYjJ6bzZJQ0hnWjdCWEtiYkJ6dUE9PSIsInZhbHVlIjoiM0tIOFh5Q0hZK3B6NlV3TEhJTmp3ajZ6ZGtlaTFDc0RVVUFvRVZxK2d3WlpsZTBpTStaOW9QaHQyRlp4d1h5byIsIm1hYyI6ImM5ODFiOTI5ZDhjYzgwNDgzMGQ3NzVhYTNhMTRlMGNjOWQ0MWMwNWMyY2FkYjkxMjJlY2YwOWE5YzFhOWEyOWUifQ%3D%3D; userDisplayInfo=%7B%22userId%22%3A3832500%2C%22hashId%22%3A%22qO7lmY8L5pEdP%22%2C%22nickname%22%3A%22%E5%8F%AB%E6%88%91%E4%BB%93%E9%BC%A0%22%2C%22avatarPath%22%3A%22%5C%2F%5C%2Fimg.zfrontier.com%5C%2Fava%5C%2F20220529%5C%2Fzf62931cfca88c5%22%2C%22viewUrl%22%3A%22%5C%2Fapp%5C%2Fuser%5C%2FqO7lmY8L5pEdP%22%7D; userServerInfo=eyJpdiI6InNHMk1SOGVVZFd0XC9zY205dENsMkd3PT0iLCJ2YWx1ZSI6IkhVTVBWVXdiZ3p6OFJiMXZlSm8xZ2NBODYxSVRvM1RWeEpzc1d1QmZBTnVIOERaUENSOFFpUWlqOE9OV0JPT1owc1JhK2JhXC82cVVhOFh6UHVZbVwvTHc9PSIsIm1hYyI6IjRiNGY1MDhhNDUwMzUzMjA0MzEwMjExZjU4NDgyNWIwNWFjNjE1NGI3MTIzNDY3NmRhYzBiMTU3YTg2ZTY1OWEifQ%3D%3D'
 cookies = cookie_seperator(cookie_input)
 
 headers = {
@@ -124,12 +127,11 @@ headers = {
     'Sec-Fetch-Site': 'same-origin',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
     'X-CLIENT-LOCALE': 'zh-CN',
-    'X-CSRF-TOKEN': '1677986750b4ca20af6c299d495bc7f1abd334a0',
+    'X-CSRF-TOKEN': '1688473073f0d1ed76fb5e4cd3630922818b0a73',
     'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"Windows"',
 }
-
 #view_headers 用于获取文章详情的headers，区别在于无X-CSRF-TOKEN并修改了Referer
 view_headers = {
     'Accept': 'application/json, textain, */*',
@@ -143,18 +145,23 @@ view_headers = {
     'Sec-Fetch-Site': 'same-origin',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
     'X-CLIENT-LOCALE': 'zh-CN',
-    'X-CSRF-TOKEN': '',
+    'X-CSRF-TOKEN': '1688473073f0d1ed76fb5e4cd3630922818b0a73',
     'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"Windows"',
 }
 
-
 data = {
-    'time': '1677986751',
-    't': '76911247ec209e60fa2d0516b48aa3cc',
+    'time': '1688473074',
+    't': '1a1de411c31dbcd7bdd38cfe02b25f97',
     'offset': '',
     'tagIds[0]': '2007',
+}
+
+view_data = {
+    'time': '1688473074',
+    't': '1a1de411c31dbcd7bdd38cfe02b25f97',
+    'id': ''
 }
 pages_cnt = 1    #初始化获取帖子列表页数
 article_cnt = -1 #未定义 在spider程序中用于统计这一页获取到的帖子数量
