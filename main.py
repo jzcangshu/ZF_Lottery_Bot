@@ -11,8 +11,29 @@ import traceback
 from notify import send
 import urllib3
 urllib3.disable_warnings()
+import sys
 
 #——————————下方区域放置所有函数&全局变量备用——————————#
+def check_network():
+    try:
+        response = requests.get("https://www.baidu.com")
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+    except:
+        return False
+
+def check_ZF_access():
+    try:
+        response = requests.get("https://www.zfrontier.com")
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+    except:
+        return False
+
 'cookie_seperator函数用于格式化从config.ini中读取到的CK变量备用 【注意】cookie中只应包含值 不要含有中文！'
 def cookie_seperator(cookie): 
     cookies = {}
@@ -59,7 +80,6 @@ def lottery_time_checker(lottery_at):
 
 'reply_to_lottery函数用于回复参与抽奖'
 def reply_to_lottery(id,hash_id):
-
     '初始化回复帖子所用到的headers & data'
     headers={
         'Accept': 'application/json, text/plain, */*',
@@ -107,16 +127,26 @@ def reply_to_lottery(id,hash_id):
     if reply_match_list[0]=='200':
         return True  #回复成功
     else:
+        reply_failure_count += 1
         return False #回复失败
 
+'message变量存储所有账号的私信信息'
+message = ''
+'message_flag用于存储本轮是否查询到新的私信'
+message_flag = False
 'qq_add用于存储本轮中需要被推送加群的QQ群'
 qq_add = ''
 'qualified_qq存储所有已经添加过的QQ群用于查重，减少推送量'
 check_file = open('qualified_qq.txt','a', encoding="UTF-8")
 check_file.close() #防止文件不存在，否则创建
+check_file = open('checked_ids.txt','a', encoding="UTF-8")
+check_file.close() #防止文件不存在，否则创建
 qq = open('qualified_qq.txt','r', encoding="UTF-8")
 qualified_qq = qq.read()
 qq.close()
+ids = open('checked_ids.txt','r', encoding="UTF-8")
+message_ids = ids.read()
+ids.close()
 
 #——————————下方开始主程序——————————#
 try:
@@ -132,6 +162,7 @@ except Exception as e:
 try:
     'have_engaged参数用于判断单个账号是否在本轮抽奖中参与了抽奖，如果没有需要参与的则跳过该账号以节省时间'
     have_engaged = False
+    warning_text = ''
     for accounts in config:
         #——————————下方区域为初始化变量——————————#
         'have_sent用于判断是否已经因为异常中断发送过一次抽奖日志，避免重复发送'
@@ -140,6 +171,12 @@ try:
         flag = False
         'lottery_info.json 文件地址'
         api = 'https://raw.githubusercontent.com/jzcangshu/lottery_info_public/master/lottery_info.json'
+
+        '回复失败计数器，用来判断账号是否失效'
+        reply_failure_count = 0
+        '分别用于判断本机网络是否正常/本机IP能否正常访问ZF'
+        network_failure = False
+        ZF_access_failure = False
 
         '读取单个账号信息'
         account_num = accounts['num'] #读取账号编号
@@ -158,7 +195,7 @@ try:
         waiting_before_use = accounts.get('WAITING_BEFORE_USE', '')
         # 如果cookies为空，则跳过当前循环
         if not cookies:
-            print("未找到cookies,下一个!")        #其实应该再检测是否有下一个账号，没时间啦
+            print("未找到cookies,下一个!")
             ready_to_send+="未找到cookies,下一个!\n"
             continue
         if http_proxy:
@@ -177,6 +214,8 @@ try:
         have_engaged = False
 
 
+        #————————————开始检查私信————————————#
+        #message_list = requests.post('https://www.zfrontier.com/v2/notifies', cookies=cookies, headers=headers, data=data_for_reply, proxies=proxies, verify=False).json
         #——————————开始单个账号抽奖——————————#
         '''
         ①登录账号 输出昵称 检查签到
@@ -188,7 +227,7 @@ try:
         ⑥所有账号运行结束后统一进行加群推送
         '''
         print('【账号'+str(account_num)+'开始抽奖】\n')
-        ready_to_send += '【账号'+str(account_num)+'开始抽奖】\n'
+        ready_to_send += '【账号'+str(account_num)+'开始抽奖】'+'('+account_notice+')\n'
         for cnt in range(20):
             try:
                 print('开始获取公共API抽奖数据...\n')
@@ -226,13 +265,11 @@ try:
             lottery_jq_flag = False
 
             if lottery_hash_id in dyids: # 已参与的抽奖
-                print('[已参与过]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                 continue
             else:
                 if lottery_time_checker(lottery_time): #判断是否已经开奖
                     if reply_to_lottery(lottery_id,lottery_hash_id): #如果回复成功
                         have_engaged = True
-                        ready_to_send += '[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
                         print('[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                         Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
                         print("随机暂停",Interval,"秒")
@@ -248,6 +285,25 @@ try:
                             qualified_qq += lottery_qq + ','
                     
                     else:
+                        reply_failure_count += 1
+                        if reply_failure_count >= 3:
+                            if check_network():
+                                temp_warining_text = '账号'+str(account_num)+'已失效！'+'('+account_notice+')'
+                                if not check_ZF_access():
+                                    temp_warining_text = '本机IP被ZF临时风控，抽奖中断！'
+                                    warning_text += temp_warining_text+'\n'
+                                    content =warning_text+'\n' '【新增Q群】\n'+qq_add
+                                    send('【ZF】抽奖日志',content)
+                                    have_sent = True
+                                    sys.exit(0)
+                                warning_text += temp_warining_text+'\n'
+                                continue
+                            else:
+                                while True:
+                                    print('网络连接中断，10min后重试')
+                                    time.sleep(600)
+                                    if check_network():
+                                        break
                         ready_to_send += '[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
                         print('[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
                         Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
@@ -266,8 +322,11 @@ try:
 
     if not have_sent:
         #推送qq_add变量（需要添加的QQ群号）  和   ready_to_send变量（日志）
-        content = '【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
+        content = warning_text+'【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
         send('【ZF】抽奖日志',content)
+    
+
+    #——————————————清理失效账号——————————————#
 
 
 except Exception as e:
