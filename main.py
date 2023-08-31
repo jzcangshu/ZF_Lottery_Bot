@@ -164,6 +164,8 @@ while True: #死循环模式（不定时启动）
 		'have_engaged参数用于判断单个账号是否在本轮抽奖中参与了抽奖，如果没有需要参与的则跳过该账号以节省时间'
 		have_engaged = False
 		warning_text = ''
+		'全局参与抽奖计数器，用于判断本轮大循环是否没有进行过任何抽奖。若未参与任何新抽奖，则延迟5小时后再次检测'
+		total_engage_count = 0
 		for accounts in config:
 			#——————————下方区域为初始化变量——————————#
 			'have_sent用于判断是否已经因为异常中断发送过一次抽奖日志，避免重复发送'
@@ -231,7 +233,7 @@ while True: #死循环模式（不定时启动）
 			⑤根据lottery_info.json中的加群信息判断是否需要加群 -> qualified_qq.txt加群查重 -> 添加加群信息到待推送str中(一行一个)
 			⑥所有账号运行结束后统一进行加群推送
 			'''
-			print('【账号'+str(account_num)+'开始抽奖】\n')
+			print('▶账号'+str(account_num)+'开始抽奖\n')
 			ready_to_send += '【账号'+str(account_num)+'开始抽奖】'+'('+account_notice+')\n'
 			for cnt in range(20):
 				try:
@@ -282,6 +284,8 @@ while True: #死循环模式（不定时启动）
 							#写入对应的dyids
 							dyids += lottery_hash_id + ','
 							success_lottery_count += 1
+							#全局参与数+1
+							total_engage_count += 1
 
 							if data['jq_flag'] == 'T':
 								lottery_jq_flag = True
@@ -324,7 +328,7 @@ while True: #死循环模式（不定时启动）
 			dyid_file.write(dyids)
 			dyid_file.close()
 			'开始记录该账号本轮抽奖状态'
-			ready_to_send += '✔成功参与' + str(success_lottery_count) + '条;' + '❌参与失败' + str(overtime_lottery_count) + '条\n'
+			ready_to_send += '✅成功参与' + str(success_lottery_count) + '条  ' + '❎参与失败' + str(overtime_lottery_count) + '条\n'
 
 		#存储本轮所有账号筛选出的需添加的QQ群为已经添加
 		qq = open('qualified_qq.txt','r+', encoding="UTF-8")
@@ -339,3 +343,5 @@ while True: #死循环模式（不定时启动）
 	except Exception as e:
 		traceback.print_exception(e)
 		wait_for_it = input('【致命错误断点】Press enter to close the terminal window')
+	
+	time.sleep()
