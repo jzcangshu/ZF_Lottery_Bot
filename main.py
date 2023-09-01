@@ -176,6 +176,7 @@ while True: #死循环模式（不定时启动）
 			api = 'https://raw.githubusercontent.com/jzcangshu/lottery_info_public/master/lottery_info.json'
 
 			'回复失败计数器，用来判断账号是否失效'
+			global reply_failure_count
 			reply_failure_count = 0
 			'分别用于判断本机网络是否正常/本机IP能否正常访问ZF'
 			network_failure = False
@@ -212,7 +213,7 @@ while True: #死循环模式（不定时启动）
 
 			if have_engaged: #如果上一个账号参与过了抽奖
 				if waiting_before_use:
-					print("——————————•随机暂停",waiting_before_use,"秒•——————————")
+					print(">>>>>>>>>>>>账号间隔",waiting_before_use,"秒<<<<<<<<<<")
 					time.sleep(int(waiting_before_use))
 				else:
 					Interval=random.randint(60,600)
@@ -234,7 +235,7 @@ while True: #死循环模式（不定时启动）
 			⑥所有账号运行结束后统一进行加群推送
 			'''
 			print('▶账号'+str(account_num)+'开始抽奖\n')
-			ready_to_send += '【账号'+str(account_num)+'开始抽奖】'+'('+account_notice+')\n'
+			ready_to_send += '▶账号'+str(account_num)+'开始抽奖'+'('+account_notice+')\n'
 			for cnt in range(20):
 				try:
 					print('开始获取公共API抽奖数据...\n')
@@ -328,7 +329,7 @@ while True: #死循环模式（不定时启动）
 			dyid_file.write(dyids)
 			dyid_file.close()
 			'开始记录该账号本轮抽奖状态'
-			ready_to_send += '✅成功参与' + str(success_lottery_count) + '条  ' + '❎参与失败' + str(overtime_lottery_count) + '条\n'
+			ready_to_send += '  ✅成功参与' + str(success_lottery_count) + '条 ' + '❎参与失败' + str(overtime_lottery_count) + '条\n'
 
 		#存储本轮所有账号筛选出的需添加的QQ群为已经添加
 		qq = open('qualified_qq.txt','r+', encoding="UTF-8")
@@ -344,4 +345,4 @@ while True: #死循环模式（不定时启动）
 		traceback.print_exception(e)
 		wait_for_it = input('【致命错误断点】Press enter to close the terminal window')
 	
-	time.sleep()
+	time.sleep(18000)
