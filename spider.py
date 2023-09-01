@@ -61,7 +61,7 @@ def spider(r,article_cnt):
                     if '群' in awards['name'] or check_words(response): #奖品名称中写明需要加群领奖
                         temp_lottery_info_dict['jq_flag'] = 'T'
                         try:
-                            temp_lottery_info_dict['lottery_qq'] = response['data']['flow']['plate']['name'] + ' ' + response['data']['flow']['plate']['qq']  #str格式的抽奖群号+空格+群昵称
+                            temp_lottery_info_dict['lottery_qq'] = response['data']['flow']['plate']['qq']  #str格式的抽奖群号
                         except:
                             temp_lottery_info_dict['jq_flag'] = 'F'
                         break
