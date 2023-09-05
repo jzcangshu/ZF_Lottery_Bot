@@ -165,7 +165,6 @@ while True: #死循环模式（不定时启动）
 		ready_to_send=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' 开始任务…… \n'
 	except Exception as e:
 		traceback.print_exception(e)
-		ready_to_send += str(e)
 		wait_for_it = input('【致命错误断点】Press enter to close the terminal window')   
 
 
@@ -260,7 +259,7 @@ while True: #死循环模式（不定时启动）
 				print('【严重错误】尝试获取抽奖数据20次失败，开始推送错误')
 				content = '【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
 				content += '抽奖数据获取失败，任务已被终止\n'
-				send('【ZF】抽奖被中断',content)
+				send('【ZF】⁉抽奖被中断⁉',content)
 				have_sent = True
 				break
 			
@@ -303,16 +302,15 @@ while True: #死循环模式（不定时启动）
 								qq_add += lottery_qq + '\n'
 								qualified_qq += lottery_qq + ','
 						
-						else:
-							reply_failure_count += 1
-							if reply_failure_count >= 3:
-								if check_network():
+						else:                                             #若新增抽奖记录刚好在3条之内，if语句无法被触发，这部分又该怎么改呢？（解铃还须系铃人，没啥思路
+							if reply_failure_count >= 3:				  #👆有了，不如在回复之前每次先ping一下？
+								if check_network():						  #👆👆那会不会因为请求太过于频繁而更容易被封号被ban ip？我不到啊🤔
 									temp_warining_text = '账号'+str(account_num)+'已失效！'+'('+account_notice+')'
 									if not check_ZF_access():
 										temp_warining_text = '本机IP被ZF临时风控，抽奖中断！'
 										warning_text += temp_warining_text+'\n'
 										content =warning_text+'\n' '【新增Q群】\n'+qq_add
-										send('【ZF】抽奖日志',content)
+										send('【ZF】⁉抽奖被中断⁉',content)						#加点符号增加警示；这应该也算中断吧
 										have_sent = True
 										sys.exit(0)
 									warning_text += temp_warining_text+'\n'
@@ -351,7 +349,7 @@ while True: #死循环模式（不定时启动）
 		
 	except Exception as e:
 		traceback.print_exception(e)
-		send('【ZF】抽奖被中断','脚本运行出现bug,请进行排查😢以下是报错信息:\n' + str(e))	   #不知道该不该添加新增qq群和之前运行正常时的信息
+		send('【ZF】⁉抽奖被中断⁉','脚本运行出现bug,请进行排查😢以下是报错信息:\n' + str(e))	   #不知道该不该添加新增qq群和之前运行正常时的信息
 		#wait_for_it = input('【致命错误断点】Press enter to close the terminal window')    
 		#在这里直接退出程序会不会更符合使用场景,毕竟是未考虑到的运行错误，同时减少资源开销(?)
 		exit(0)
