@@ -81,7 +81,7 @@ while True: #死循环模式（不定时启动）
 
 	'reply_to_lottery函数用于回复参与抽奖'
 	def reply_to_lottery(id,hash_id):
-		global reply_failure_count , ready_to_send 
+		global reply_failure_count 
 		'初始化回复帖子所用到的headers & data'
 		headers={
 			'Accept': 'application/json, text/plain, */*',
@@ -165,7 +165,7 @@ while True: #死循环模式（不定时启动）
 		ready_to_send=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' 开始任务…… \n'
 	except Exception as e:
 		traceback.print_exception(e)
-		wait_for_it = input('【致命错误断点】Press enter to close the terminal window')   
+		wait_for_it = input('【致命错误断点】Press enter to close the terminal window')
 
 
 	try:
@@ -303,9 +303,9 @@ while True: #死循环模式（不定时启动）
 								qualified_qq += lottery_qq + ','
 						
 						else:   
-							reply_failure_count += 1#若新增抽奖记录刚好在3条之内，if语句无法被触发，这部分又该怎么改呢？（解铃还须系铃人，没啥思路
+							reply_failure_count += 1				  #若新增抽奖记录刚好在3条之内，if语句无法被触发，这部分又该怎么改呢？（解铃还须系铃人，没啥思路
 							if reply_failure_count >= 3:				  #👆有了，不如在回复之前每次先ping一下？
-								if check_network():						  #👆👆那会不会因为请求太过于频繁而更容易被封号被ban ip？我不到啊🤔
+								if check_network():				  #👆👆那会不会因为请求太过于频繁而更容易被封号被ban ip？我不到啊🤔
 									temp_warining_text = '账号'+str(account_num)+'已失效！'+'('+account_notice+')'
 									if not check_ZF_access():
 										temp_warining_text = '本机IP被ZF临时风控，抽奖中断！'
