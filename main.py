@@ -81,6 +81,7 @@ while True: #死循环模式（不定时启动）
 
 	'reply_to_lottery函数用于回复参与抽奖'
 	def reply_to_lottery(id,hash_id):
+		global reply_failure_count , ready_to_send 
 		'初始化回复帖子所用到的headers & data'
 		headers={
 			'Accept': 'application/json, text/plain, */*',
@@ -122,15 +123,22 @@ while True: #死循环模式（不定时启动）
 	#    else :
 	#        print('点赞失败!')
 		# 回复帖子
-
-		reply_response = requests.post('https://www.zfrontier.com/v2/flow/reply', cookies=cookies, headers=headers, data=data_for_reply, proxies=proxies, verify=False).json
-		reply_match_list = re.findall(r'\d+', str(reply_response))
-		if reply_match_list[0]=='200':
-			return True  #回复成功
-		else:
-			reply_failure_count += 1
-			return False #回复失败
-
+		try:
+			reply_response = requests.post('https://www.zfrontier.com/v2/flow/reply', cookies=cookies, headers=headers, data=data_for_reply, proxies=proxies, verify=False).json
+			reply_match_list = re.findall(r'\d+', str(reply_response))
+			if reply_match_list[0]=='200':
+				return True  #回复成功
+			else:
+				reply_failure_count += 1
+				return False #回复失败
+		except requests.exceptions.RequestException as e:
+			# 处理请求异常，例如连接问题、超时、ip被ban等
+			return False
+		except Exception as e:
+			# 处理其他异常，如JSON解析错误等
+			raise Exception(str(e))			
+			#其他未知bug直接raise
+		
 	'message变量存储所有账号的私信信息'
 	message = ''
 	'message_flag用于存储本轮是否查询到新的私信'
@@ -157,7 +165,8 @@ while True: #死循环模式（不定时启动）
 		ready_to_send=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")) + ' 开始任务…… \n'
 	except Exception as e:
 		traceback.print_exception(e)
-		wait_for_it = input('【致命错误断点】Press enter to close the terminal window')
+		ready_to_send += str(e)
+		wait_for_it = input('【致命错误断点】Press enter to close the terminal window')   
 
 
 	try:
@@ -176,7 +185,6 @@ while True: #死循环模式（不定时启动）
 			api = 'https://raw.githubusercontent.com/jzcangshu/lottery_info_public/master/lottery_info.json'
 
 			'回复失败计数器，用来判断账号是否失效'
-			global reply_failure_count
 			reply_failure_count = 0
 			'分别用于判断本机网络是否正常/本机IP能否正常访问ZF'
 			network_failure = False
@@ -343,6 +351,10 @@ while True: #死循环模式（不定时启动）
 		
 	except Exception as e:
 		traceback.print_exception(e)
-		wait_for_it = input('【致命错误断点】Press enter to close the terminal window')
+		send('【ZF】抽奖被中断','脚本运行出现bug,请进行排查😢以下是报错信息:\n' + str(e))	   #不知道该不该添加新增qq群和之前运行正常时的信息
+		#wait_for_it = input('【致命错误断点】Press enter to close the terminal window')    
+		#在这里直接退出程序会不会更符合使用场景,毕竟是未考虑到的运行错误，同时减少资源开销(?)
+		exit(0)
 	
-	time.sleep(18000)
+	time.sleep(random.randint(43200,129600)) 
+	#请按个人口味酌情添加
