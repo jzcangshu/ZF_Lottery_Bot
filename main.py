@@ -81,6 +81,7 @@ while True: #死循环模式（不定时启动）
 
 	'reply_to_lottery函数用于回复参与抽奖'
 	def reply_to_lottery(id,hash_id):
+		global reply_failure_count 
 		'初始化回复帖子所用到的headers & data'
 		headers={
 			'Accept': 'application/json, text/plain, */*',
@@ -122,15 +123,22 @@ while True: #死循环模式（不定时启动）
 	#    else :
 	#        print('点赞失败!')
 		# 回复帖子
-
-		reply_response = requests.post('https://www.zfrontier.com/v2/flow/reply', cookies=cookies, headers=headers, data=data_for_reply, proxies=proxies, verify=False).json
-		reply_match_list = re.findall(r'\d+', str(reply_response))
-		if reply_match_list[0]=='200':
-			return True  #回复成功
-		else:
-			reply_failure_count += 1
-			return False #回复失败
-
+		try:
+			reply_response = requests.post('https://www.zfrontier.com/v2/flow/reply', cookies=cookies, headers=headers, data=data_for_reply, proxies=proxies, verify=False).json
+			reply_match_list = re.findall(r'\d+', str(reply_response))
+			if reply_match_list[0]=='200':
+				return True  #回复成功
+			else:
+				reply_failure_count += 1
+				return False #回复失败
+		except requests.exceptions.RequestException as e:
+			# 处理请求异常，例如连接问题、超时、ip被ban等
+			return False
+		except Exception as e:
+			# 处理其他异常，如JSON解析错误等
+			raise Exception(str(e))			
+			#其他未知bug直接raise
+		
 	'message变量存储所有账号的私信信息'
 	message = ''
 	'message_flag用于存储本轮是否查询到新的私信'
@@ -176,7 +184,6 @@ while True: #死循环模式（不定时启动）
 			api = 'https://raw.githubusercontent.com/jzcangshu/lottery_info_public/master/lottery_info.json'
 
 			'回复失败计数器，用来判断账号是否失效'
-			global reply_failure_count
 			reply_failure_count = 0
 			'分别用于判断本机网络是否正常/本机IP能否正常访问ZF'
 			network_failure = False
@@ -252,7 +259,7 @@ while True: #死循环模式（不定时启动）
 				print('【严重错误】尝试获取抽奖数据20次失败，开始推送错误')
 				content = '【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
 				content += '抽奖数据获取失败，任务已被终止\n'
-				send('【ZF】抽奖被中断',content)
+				send('【ZF】⁉抽奖被中断⁉',content)
 				have_sent = True
 				break
 			
@@ -264,67 +271,74 @@ while True: #死循环模式（不定时启动）
 			dyids = dyid_file.read()
 			dyid_file.close()
 			# 遍历抽奖数据文件
-			for data in lottery_data_json:
-				# 获取单个抽奖帖子的所有信息
-				lottery_id = data['id']
-				lottery_hash_id = data['hash_id']
-				lottery_time = data['lottery_time']
-				lottery_qq = data['lottery_qq']
-				lottery_jq_flag = False
 
-				if lottery_hash_id in dyids: # 已参与的抽奖
-					continue
+			continue_lottery = True
+
+			for data in lottery_data_json: 
+				if not continue_lottery:
+					break                           #若账号异常，则不要继续，写入日志后开始下一个账号
 				else:
-					if lottery_time_checker(lottery_time): #判断是否已经开奖
-						if reply_to_lottery(lottery_id,lottery_hash_id): #如果回复成功
-							have_engaged = True
-							print('[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
-							Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
-							print("——————————•随机暂停",Interval,"秒•——————————")
-							time.sleep(Interval)
-							#写入对应的dyids
-							dyids += lottery_hash_id + ','
-							success_lottery_count += 1
-							#全局参与数+1
-							total_engage_count += 1
+					# 获取单个抽奖帖子的所有信息
+					lottery_id = data['id']
+					lottery_hash_id = data['hash_id']
+					lottery_time = data['lottery_time']
+					lottery_qq = data['lottery_qq']
+					lottery_jq_flag = False
 
-							if data['jq_flag'] == 'T':
-								lottery_jq_flag = True
-							#如果抽奖要求加群 并且 本轮所有账号的抽奖中都还未涉及过添加此群 并且 该群未出现在已添加的群聊中(qualified_qq.txt) -> 加入加群推送STR
-							if lottery_jq_flag and (lottery_qq not in qq_add) and (lottery_qq not in qualified_qq):
-								qq_add += lottery_qq + '\n'
-								qualified_qq += lottery_qq + ','
-						
-						else:
-							reply_failure_count += 1
-							if reply_failure_count >= 3:
-								if check_network():
-									temp_warining_text = '账号'+str(account_num)+'已失效！'+'('+account_notice+')'
-									if not check_ZF_access():
-										temp_warining_text = '本机IP被ZF临时风控，抽奖中断！'
-										warning_text += temp_warining_text+'\n'
-										content =warning_text+'\n' '【新增Q群】\n'+qq_add
-										send('【ZF】抽奖日志',content)
-										have_sent = True
-										sys.exit(0)
-									warning_text += temp_warining_text+'\n'
-									continue
-								else:
-									while True:
-										print('网络连接中断，10min后重试')
-										time.sleep(600)
-										if check_network():
-											break
-							ready_to_send += '[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
-							print('[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
-							Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
-							print("随机暂停",Interval,"秒")
-							time.sleep(Interval)
+					if lottery_hash_id in dyids: # 已参与的抽奖
+						continue
 					else:
-						print('[过期抽奖]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
-						#写入dyids，下次就不会再理会此帖了。防止过期抽奖长期滞留
-						dyids += lottery_hash_id + ','
-						overtime_lottery_count += 1
+						if lottery_time_checker(lottery_time): #判断是否已经开奖
+							if reply_to_lottery(lottery_id,lottery_hash_id): #如果回复成功
+								have_engaged = True
+								print('[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+								Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
+								print("——————————•随机暂停",Interval,"秒•——————————")
+								time.sleep(Interval)
+								#写入对应的dyids
+								dyids += lottery_hash_id + ','
+								success_lottery_count += 1
+								#全局参与数+1
+								total_engage_count += 1
+
+								if data['jq_flag'] == 'T':
+									lottery_jq_flag = True
+								#如果抽奖要求加群 并且 本轮所有账号的抽奖中都还未涉及过添加此群 并且 该群未出现在已添加的群聊中(qualified_qq.txt) -> 加入加群推送STR
+								if lottery_jq_flag and (lottery_qq not in qq_add) and (lottery_qq not in qualified_qq):
+									qq_add += lottery_qq + '\n'
+									qualified_qq += lottery_qq + ','
+							
+							else:   
+								reply_failure_count += 1				  #若新增抽奖记录刚好在3条之内，if语句无法被触发，这部分又该怎么改呢？（解铃还须系铃人，没啥思路
+								if reply_failure_count >= 3:				  #👆有了，不如在回复之前每次先ping一下？
+									if check_network():				  #👆👆那会不会因为请求太过于频繁而更容易被封号被ban ip？我不到啊🤔
+										temp_warining_text = '账号'+str(account_num)+'已失效！'+'('+account_notice+')'
+										if not check_ZF_access():
+											temp_warining_text = '本机IP被ZF临时风控，抽奖中断！'
+											warning_text += temp_warining_text+'\n'
+											content =warning_text+'\n' '【新增Q群】\n'+qq_add
+											send('【ZF】⁉抽奖被中断⁉',content)						#加点符号增加警示；这应该也算中断吧
+											have_sent = True
+											sys.exit(0)
+										warning_text += temp_warining_text+'\n'
+										continue_lottery = False                                    #立个flag，判断是否继续
+										continue
+									else:
+										while True:
+											print('网络连接中断，10min后重试')
+											time.sleep(600)
+											if check_network():
+												break
+								ready_to_send += '[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
+								print('[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+								Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
+								print("随机暂停",Interval,"秒")
+								time.sleep(Interval)
+						else:
+							print('[过期抽奖]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+							#写入dyids，下次就不会再理会此帖了。防止过期抽奖长期滞留
+							dyids += lottery_hash_id + ','
+							overtime_lottery_count += 1
 			dyid_file = open('./dyids/dyids'+str(account_num)+'.txt','w', encoding="UTF-8") 
 			dyid_file.write(dyids)
 			dyid_file.close()
@@ -343,6 +357,10 @@ while True: #死循环模式（不定时启动）
 		
 	except Exception as e:
 		traceback.print_exception(e)
-		wait_for_it = input('【致命错误断点】Press enter to close the terminal window')
+		send('【ZF】⁉抽奖被中断⁉','脚本运行出现bug,请进行排查😢以下是报错信息:\n' + str(e))	   #不知道该不该添加新增qq群和之前运行正常时的信息
+		#wait_for_it = input('【致命错误断点】Press enter to close the terminal window')    
+		#在这里直接退出程序会不会更符合使用场景,毕竟是未考虑到的运行错误，同时减少资源开销(?)
+		exit(0)
 	
-	time.sleep(18000)
+	time.sleep(random.randint(43200,129600)) 
+	#请按个人口味酌情添加
