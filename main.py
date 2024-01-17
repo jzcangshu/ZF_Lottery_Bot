@@ -35,7 +35,7 @@ while True: #死循环模式（不定时启动）
 		except:
 			return False
 
-	'cookie_seperator函数用于格式化从config.ini中读取到的CK变量备用 【注意】cookie中只应包含值 不要含有中文！'
+	'cookie_seperator函数用于格式化从config.json中读取到的CK变量备用 【注意】cookie中只应包含值 不要含有中文！'
 	def cookie_seperator(cookie): 
 		cookies = {}
 		lst=cookie.split('; ')
@@ -96,9 +96,9 @@ while True: #死循环模式（不定时启动）
 			'Sec-Fetch-Dest': 'empty',
 			'Sec-Fetch-Mode': 'cors',
 			'Sec-Fetch-Site': 'same-origin',
-			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.69',
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
 			'X-CLIENT-LOCALE': 'zh-CN',
-			'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"',
+			'sec-ch-ua': '"Microsoft Edge";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
 			'sec-ch-ua-mobile': '?0',
 			'sec-ch-ua-platform': '"Windows"',
 		}
@@ -109,6 +109,8 @@ while True: #死循环模式（不定时启动）
 			'reply_id':'',
 			'content':'waiting 4 initializing'
 		}
+
+		
 
 		site = 'https://www.zfrontier.com/app/flow/' + hash_id
 		reply_content = random.choice(accounts['chat'])
@@ -123,6 +125,7 @@ while True: #死循环模式（不定时启动）
 	#    else :
 	#        print('点赞失败!')
 		# 回复帖子
+
 		try:
 			reply_response = requests.post('https://www.zfrontier.com/v2/flow/reply', cookies=cookies, headers=headers, data=data_for_reply, proxies=proxies, verify=False).json
 			reply_match_list = re.findall(r'\d+', str(reply_response))
@@ -138,6 +141,113 @@ while True: #死循环模式（不定时启动）
 			# 处理其他异常，如JSON解析错误等
 			raise Exception(str(e))			
 			#其他未知bug直接raise
+	
+	'random_browsing函数用于随机浏览帖子,降低风控风险'
+	def random_browsing():
+		global cookies
+
+		headers = {
+			'Accept': 'application/json, textain, */*',
+			'Accept-Language': 'zh-CN,zh;q=0.9',
+			'Connection': 'keep-alive',
+			'DNT': '1',
+			'Origin': 'https://www.zfrontier.com',
+			'Referer': 'https://www.zfrontier.com/app/',
+			'Sec-Fetch-Dest': 'empty',
+			'Sec-Fetch-Mode': 'cors',
+			'Sec-Fetch-Site': 'same-origin',
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
+			'X-CLIENT-LOCALE': 'zh-CN',
+			'X-CSRF-TOKEN': '1688473073f0d1ed76fb5e4cd3630922818b0a73',
+			'sec-ch-ua': '"Microsoft Edge";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+			'sec-ch-ua-mobile': '?0',
+			'sec-ch-ua-platform': '"Windows"',
+		}
+
+		#view_headers 用于获取文章详情的headers，区别在于无X-CSRF-TOKEN并修改了Referer
+		view_headers = {
+			'Accept': 'application/json, textain, */*',
+			'Accept-Language': 'zh-CN,zh;q=0.9',
+			'Connection': 'keep-alive',
+			'DNT': '1',
+			'Origin': 'https://www.zfrontier.com',
+			'Referer': '',
+			'Sec-Fetch-Dest': 'empty',
+			'Sec-Fetch-Mode': 'cors',
+			'Sec-Fetch-Site': 'same-origin',
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
+			'X-CLIENT-LOCALE': 'zh-CN',
+			'X-CSRF-TOKEN': '1688473073f0d1ed76fb5e4cd3630922818b0a73',
+			'sec-ch-ua': '"Microsoft Edge";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+			'sec-ch-ua-mobile': '?0',
+			'sec-ch-ua-platform': '"Windows"',
+		}
+
+		data = {
+			'time': '1688473074',
+			't': '1a1de411c31dbcd7bdd38cfe02b25f97',
+			'offset': '',
+			'tagIds[0]': '2007',
+		}
+
+		view_data = {
+			'time': '1688473074',
+			't': '1a1de411c31dbcd7bdd38cfe02b25f97',
+			'id': ''
+		}
+		
+		#2/3的概率去浏览帖子
+		if random.randint(1,3)==1:
+			return
+
+
+		pages_cnt = 1    #初始化获取帖子列表页数
+
+		while pages_cnt <= random.randint(1,3):
+			#再来一个 2/3的概率去浏览帖子
+			if random.randint(1,3)==1:
+				return
+
+			r_cnt=0
+			response = requests.post('https://www.zfrontier.com/v2/home/flow/list', proxies=proxies, cookies=cookies, headers=headers, data=data,verify=False).json()
+			#此处也能有风控是我没想到的 故加入下方同款风控处理系统   ——我甚至觉得可以将风控处理独立化，因为要调用的地方太多了
+			while r_cnt<= 3 and ( response['msg'] == '操作太频繁了' or response['data'] == []):		
+				r_cnt += 1
+				print('【风控警告】自动暂停',str(60*r_cnt),'秒...')
+				time.sleep(60*r_cnt)
+				response = requests.post('https://www.zfrontier.com/v2/home/flow/list', proxies=proxies, cookies=cookies, headers=headers, data=data,verify=False).json() 
+				if response['msg'] == '操作太频繁了' or response['data'] == []:
+					raise Exception('【风控警告】超出最大风控重试次数限制，程序强制退出')
+			data['offset'] = response['data']['offset']
+			article_read = 1
+			print('正在执行浏览任务，浏览第',pages_cnt,'页.')
+
+			time.sleep(random.uniform(20,65))
+			
+			for article in response['data']['list']: # 开始获取单个帖子详情
+				if random.randint(1,15)!=1:
+					continue
+
+				cnt = 0 #重试请求次数计数器
+				view_headers['Referer'] = 'https://www.zfrontier.com/app/flow/detail/' + article['hash_id']
+				view_url = 'https://www.zfrontier.com/v2/flow/detail'
+				view_data['id'] = article['hash_id']
+				response = requests.post(view_url, proxies=proxies,cookies=cookies, headers=view_headers, data=view_data, verify=False).json() # 获取详情
+				while cnt<= 3 and ( response['msg'] == '操作太频繁了' or response['data'] == []):
+					cnt += 1
+					print('【风控警告】自动暂停',str(60*cnt),'秒...')
+					time.sleep(60*cnt)
+					response = requests.post(view_url, proxies=proxies,cookies=cookies, headers=view_headers, data=data, verify=False).json() # 获取详情
+				if response['msg'] == '操作太频繁了' or response['data'] == []:
+					raise Exception('【风控警告】超出最大风控重试次数限制，程序强制退出')
+				# 循环重试最多3次
+				
+				print('浏览帖子详情:',article['hash_id'],'  ('+str(article_read)+')')
+				article_read += 1
+				time.sleep(random.uniform(20,65))
+
+			pages_cnt += 1
+		
 		
 	'message变量存储所有账号的私信信息'
 	message = ''
@@ -209,7 +319,7 @@ while True: #死循环模式（不定时启动）
 			https_proxy = accounts.get('HTTPS_PROXY', '')
 			waiting_before_use = accounts.get('WAITING_BEFORE_USE', '')
 			# 如果cookies为空，则跳过当前循环
-			if not cookies:
+			if cookies=={'': ''}:
 				print("未找到cookies,下一个!")
 				ready_to_send+="未找到cookies,下一个!\n"
 				continue
@@ -220,7 +330,7 @@ while True: #死循环模式（不定时启动）
 
 			if have_engaged: #如果上一个账号参与过了抽奖
 				if waiting_before_use:
-					print(">>>>>>>>>>>>账号间隔",waiting_before_use,"秒<<<<<<<<<<")
+					print(">>>>>>>>>>>>账号间隔",waiting_before_use,"秒<<<<<<<<<<<<")
 					time.sleep(int(waiting_before_use))
 				else:
 					Interval=random.randint(60,600)
@@ -271,74 +381,69 @@ while True: #死循环模式（不定时启动）
 			dyids = dyid_file.read()
 			dyid_file.close()
 			# 遍历抽奖数据文件
+			for data in lottery_data_json:
+				# 获取单个抽奖帖子的所有信息
+				lottery_id = data['id']
+				lottery_hash_id = data['hash_id']
+				lottery_time = data['lottery_time']
+				lottery_qq = data['lottery_qq']
+				lottery_jq_flag = False
 
-			continue_lottery = True
-
-			for data in lottery_data_json: 
-				if not continue_lottery:
-					break                           #若账号异常，则不要继续，写入日志后开始下一个账号
+				if lottery_hash_id in dyids: # 已参与的抽奖
+					continue
 				else:
-					# 获取单个抽奖帖子的所有信息
-					lottery_id = data['id']
-					lottery_hash_id = data['hash_id']
-					lottery_time = data['lottery_time']
-					lottery_qq = data['lottery_qq']
-					lottery_jq_flag = False
-
-					if lottery_hash_id in dyids: # 已参与的抽奖
-						continue
-					else:
-						if lottery_time_checker(lottery_time): #判断是否已经开奖
-							if reply_to_lottery(lottery_id,lottery_hash_id): #如果回复成功
-								have_engaged = True
-								print('[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
-								Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
-								print("——————————•随机暂停",Interval,"秒•——————————")
-								time.sleep(Interval)
-								#写入对应的dyids
-								dyids += lottery_hash_id + ','
-								success_lottery_count += 1
-								#全局参与数+1
-								total_engage_count += 1
-
-								if data['jq_flag'] == 'T':
-									lottery_jq_flag = True
-								#如果抽奖要求加群 并且 本轮所有账号的抽奖中都还未涉及过添加此群 并且 该群未出现在已添加的群聊中(qualified_qq.txt) -> 加入加群推送STR
-								if lottery_jq_flag and (lottery_qq not in qq_add) and (lottery_qq not in qualified_qq):
-									qq_add += lottery_qq + '\n'
-									qualified_qq += lottery_qq + ','
-							
-							else:   
-								reply_failure_count += 1				  #若新增抽奖记录刚好在3条之内，if语句无法被触发，这部分又该怎么改呢？（解铃还须系铃人，没啥思路
-								if reply_failure_count >= 3:				  #👆有了，不如在回复之前每次先ping一下？
-									if check_network():				  #👆👆那会不会因为请求太过于频繁而更容易被封号被ban ip？我不到啊🤔
-										temp_warining_text = '账号'+str(account_num)+'已失效！'+'('+account_notice+')'
-										if not check_ZF_access():
-											temp_warining_text = '本机IP被ZF临时风控，抽奖中断！'
-											warning_text += temp_warining_text+'\n'
-											content =warning_text+'\n' '【新增Q群】\n'+qq_add
-											send('【ZF】⁉抽奖被中断⁉',content)						#加点符号增加警示；这应该也算中断吧
-											have_sent = True
-											sys.exit(0)
-										warning_text += temp_warining_text+'\n'
-										continue_lottery = False                                    #立个flag，判断是否继续
-										continue
-									else:
-										while True:
-											print('网络连接中断，10min后重试')
-											time.sleep(600)
-											if check_network():
-												break
-								ready_to_send += '[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
-								print('[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
-								Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
-								print("随机暂停",Interval,"秒")
-								time.sleep(Interval)
-						else:
-							print('[过期抽奖]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
-							#写入dyids，下次就不会再理会此帖了。防止过期抽奖长期滞留
+					if lottery_time_checker(lottery_time): #判断是否已经开奖
+						if reply_to_lottery(lottery_id,lottery_hash_id): #如果回复成功
+							have_engaged = True
+							print('[参与成功]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+							Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
+							print("——————————•随机暂停",Interval,"秒•——————————")
+							time.sleep(Interval)
+							#写入对应的dyids
 							dyids += lottery_hash_id + ','
-							overtime_lottery_count += 1
+							success_lottery_count += 1
+							#全局参与数+1
+							total_engage_count += 1
+
+							if data['jq_flag'] == 'T':
+								lottery_jq_flag = True
+							#如果抽奖要求加群 并且 本轮所有账号的抽奖中都还未涉及过添加此群 并且 该群未出现在已添加的群聊中(qualified_qq.txt) -> 加入加群推送STR
+							if lottery_jq_flag and (lottery_qq not in qq_add) and (lottery_qq not in qualified_qq):
+								qq_add += lottery_qq + '\n'
+								qualified_qq += lottery_qq + ','
+
+							random_browsing()
+						
+						else:   
+							reply_failure_count += 1				  #若新增抽奖记录刚好在3条之内，if语句无法被触发，这部分又该怎么改呢？（解铃还须系铃人，没啥思路
+							if reply_failure_count >= 3:				  #👆有了，不如在回复之前每次先ping一下？
+								if check_network():				  #👆👆那会不会因为请求太过于频繁而更容易被封号被ban ip？我不到啊🤔
+									temp_warining_text = '账号'+str(account_num)+'已失效！'+'('+account_notice+')'
+									if not check_ZF_access():
+										temp_warining_text = '本机IP被ZF临时风控，抽奖中断！'
+										warning_text += temp_warining_text+'\n'
+										content =warning_text+'\n' '【新增Q群】\n'+qq_add
+										send('【ZF】⁉抽奖被中断⁉',content)						#加点符号增加警示；这应该也算中断吧
+										have_sent = True
+										sys.exit(0)
+									warning_text += temp_warining_text+'\n'
+									break
+								else:
+									while True:
+										print('网络连接中断，10min后重试')
+										time.sleep(600)
+										if check_network():
+											break
+							ready_to_send += '[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id)+'\n'
+							print('[参与失败]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+							Interval=random.randint(reply_waiting//2 , reply_waiting+reply_waiting//2) #回复延迟上下浮动50%
+							print("随机暂停",Interval,"秒")
+							time.sleep(Interval)
+					else:
+						print('[过期抽奖]'+'https://www.zfrontier.com/app/flow/'+str(lottery_hash_id))
+						#写入dyids，下次就不会再理会此帖了。防止过期抽奖长期滞留
+						dyids += lottery_hash_id + ','
+						overtime_lottery_count += 1
 			dyid_file = open('./dyids/dyids'+str(account_num)+'.txt','w', encoding="UTF-8") 
 			dyid_file.write(dyids)
 			dyid_file.close()
@@ -352,12 +457,12 @@ while True: #死循环模式（不定时启动）
 
 		if not have_sent:
 			#推送qq_add变量（需要添加的QQ群号）  和   ready_to_send变量（日志）
-			content = warning_text+'【新增Q群】\n'+qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
+			content = warning_text + '【新增Q群】\n' + qq_add + '————————————————————————————\n' + '【运行日志】\n' + ready_to_send
 			send('【ZF】抽奖日志',content)
 		
 	except Exception as e:
 		traceback.print_exception(e)
-		send('【ZF】⁉抽奖被中断⁉','脚本运行出现bug,请进行排查😢以下是报错信息:\n' + str(e))	   #不知道该不该添加新增qq群和之前运行正常时的信息
+		send('【ZF】⁉抽奖被中断⁉','脚本运行出现bug,请进行排查😢以下是报错信息:\n' + str(e) + '\n————————————————————————————\n' + '【新增Q群】\n' + qq_add)	   
 		#wait_for_it = input('【致命错误断点】Press enter to close the terminal window')    
 		#在这里直接退出程序会不会更符合使用场景,毕竟是未考虑到的运行错误，同时减少资源开销(?)
 		exit(0)
